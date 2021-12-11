@@ -158,6 +158,20 @@ entry
 	jsr calc_wrap
 	jsr hex_string		; convert result to hex
 	+print res_msg
+	; clear results
+	lda #0
+	ldx #5
+.zero_next
+	sta count,x
+	dex
+	bpl .zero_next
+	; update text for "part 2"
+	lda #"2"
+	sta res_msg+5
+	; part 2
+	jsr calc_ribbon
+	jsr hex_string
+	+print res_msg
 	rts
 
 count	!word 0			; mumber of gifts processed so far
@@ -216,6 +230,74 @@ gift_area
 	+add_word slack, total, total
 	rts
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Part 2
+;
+; Calculate total square of feet of ribbon needed by elves.
+; Uses the same gift dimension data as part 1.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+calc_ribbon
+	; call ribbon_length for each gift and store the sum of each in result
+	+sum_fn ribbon_length, total, count, gift_data, num_gifts, 3, result
+	rts
+
+; Calculate ribbon length for a single gift.
+; Ribbon length is equal to the perimeter of the smallest face + ribbon for
+; the bow (volume of gift).
+; Store result in total.
+ribbon_length:
+	jsr init_gift
+	; bow length = volume of gift
+	+calc_area dim, dim+1, slack	; slack = dim1 x dim2
+	lda slack			; slack *= dim3
+	sta mult1
+	lda slack+1
+	sta mult1+1
+	lda dim+2
+	sta mult2
+	lda #0
+	sta mult2+1
+	jsr mul_word
+	lda mult1+2			; store result back in slack
+	sta slack
+	lda mult1+3
+	sta slack+1
+	; find max side
+	lda dim
+	cmp dim+1			; dim0 >= dim1?
+	bcc .cmp_d1_d2			; if not, try dim1 and dim2
+	cmp dim+2			; dim0 >= dim2?
+	bcc .d2_max			; if not, dim2 is max
+	lda dim+1			; dim0 is max so use dim1 and dim2
+	sta area2
+	lda dim+2
+	sta area3
+	jmp .find_length
+.cmp_d1_d2
+	lda dim+1
+	cmp dim+2			; dim1 >= dim2?
+	bcc .d2_max			; if not, dim2 is max
+	lda dim				; dim1 is max so use dim0 and dim2
+	sta area2
+	lda dim+2
+	sta area3
+	jmp .find_length
+.d2_max
+	lda dim				; dim2 is max so use dim0 and dim1
+	sta area2
+	lda dim+1
+	sta area3
+.find_length
+	; multiply area 2 by 2
+	asl area2
+	rol area2+1
+	; multiply area 3 by 2
+	asl area3
+	rol area3+1
+	; sum total length (area2 + area3 + slack)
+	+sum_words area2, 3, total
+	rts
+
 ; Copies the dimensions for the next gift and zeroes the total.
 init_gift:
 	; copy next dimensions (1 byte each)
@@ -239,7 +321,7 @@ dim	!byte 0, 0, 0		; dimensions of one gift
 area1	!word 0
 area2	!word 0
 area3	!word 0
-slack   !word 0
+slack   !word 0			; slack (part 1) and bow (part 2)
 total   !word 0			; result for one gift
 
 ; Multiply two 16-bit words in mult1 and mult2 using add-and-shift.
