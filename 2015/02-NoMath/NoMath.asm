@@ -7,12 +7,60 @@
 
 ; C-64 BASIC ROM subroutines
 print_word=$bdcd	; Print 16-bit integer (A=msb, X=lsb)
-print_str=$ab1e		; Print string (Y=msb of pointer to string, A=lsb of pointer to string)
+print_str=$ab1e		; Print string (Y=#>string, A=#<string)
 
 ; PETSCII (yes, really) characters
 petscii_cr=13		; Same as ascii (shrug)
 
-; Calculate the area of a rect with sides stored in .dim1 and .dim2 (each 8-bit).
+; Calculate the sum of the result of calling .fn for all gifts.
+; Parameters
+; 	.fn		Function that operates on (next_gift).
+; 	.fn_result	Location of function result.
+;	.index		Location of current gift index.
+;	.gift_data	Location of start of gift data.
+;	.num_gifts	Location of number of gifts.
+;	.data_size	Number of bytes of data for each gift. (0...255)
+;	.total		Pointer to final sum (32-bit).
+; Memory Locations
+;	next_gift	Zero-page pointer to next gift data.
+; Result is stored in .total.
+!macro sum_fn .fn, .fn_result, .index, .gift_data, .num_gifts, .data_size, .total {
+	; store address of first row of dimensions in next_data
+	lda #<.gift_data
+	sta next_gift
+	lda #>.gift_data
+	sta next_gift+1
+.next
+	; calculate result and add to total
+	jsr .fn
+	+add_32 .fn_result, .total
+	; increment index
+	clc
+	lda .index
+	adc #1
+	sta .index
+	lda .index+1
+	adc #0
+	sta .index+1
+	; are we done?
+	cmp .num_gifts+1
+	bcc .continue
+	lda .index
+	cmp .num_gifts
+	beq .done
+.continue
+	; get address of next row of data
+	clc
+	lda next_gift
+	adc #.data_size
+	sta next_gift
+	bcc .next
+	inc next_gift+1
+	jmp .next
+.done
+}
+
+; Calculate the area of a rect with sides stored in .dim1 and .dim2 (8-bit).
 ; Store 16-bit result in .result.
 !macro calc_area .dim1, .dim2, .result {
 	lda .dim1
@@ -92,73 +140,40 @@ petscii_cr=13		; Same as ascii (shrug)
 }
 
 ; Zeropage addresses
-next_gift=$fb	; contains pointer to dimensions of next gift
+next_gift=$fb		; contains pointer to dimensions of next gift
 
-; Calculate total square feet of wrapping paper needed by elves.
-; Each present's dimensions are stored in 3 bytes (one per dimension) starting at data.
-; data_len is set to the number of presents.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Solve both parts of today's puzzle and print results.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 entry
-	jsr calc_wrap		; part 1
+	; part 1
+	jsr calc_wrap
 	jsr hex_string		; convert result to hex
 	+print res_msg
 	rts
 
-count	!word 0
-result	!32 0
+count	!word 0			; mumber of gifts processed so far
+result	!32 0			; final result for each part
 res_msg	!text "PART 1: 0X"
 res_hex	!text "00000000", petscii_cr, 0
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; Part 1
+;
+; Calculate total square feet of wrapping paper needed by elves.
+; Each present's dimensions are stored in 3 bytes (one per dimension) 
+; starting at gift_data. Count is in num_gifts.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 calc_wrap
-	; store address of first row of dimensions in next_data
-	lda #<gift_data
-	sta next_gift
-	lda #>gift_data
-	sta next_gift+1
-.next
-	; calculate area of gift + slack and add to result
-	jsr gift_area
-	+add_32 total, result
-	; increment count
-	clc
-	lda count
-	adc #1
-	sta count
-	lda count+1
-	adc #0
-	sta count+1
-	; are we done?
-	cmp num_gifts+1
-	bcc .continue
-	lda count
-	cmp num_gifts
-	beq .done
-.continue
-	; get address of next row of data
-	clc
-	lda next_gift
-	adc #3
-	sta next_gift
-	bcc .next
-	inc next_gift+1
-	jmp .next
-.done
+	; call gift_area for each gift and store the sum of each in result
+	+sum_fn gift_area, total, count, gift_data, num_gifts, 3, result
 	rts
 
-; Determine surface area of cube with dimensions in (next_data) + slack (area of smallest side).
+; Determine surface area of cube with dimensions in (next_data) + slack (area
+; of smallest side).
 ; Store result in total.
 gift_area
-	; copy next dimensions (1 byte each)
-	ldy #0
-.copy_dim
-	lda (next_gift),y
-	sta dim,y
-	iny
-	cpy #3
-	bne .copy_dim
-	; clear total
-	lda #0
-	sta total
-	sta total+1
+	jsr init_gift
 	; calculate areas
 	+calc_area dim, dim+1, area1
 	+calc_area dim, dim+2, area2
@@ -193,12 +208,31 @@ gift_area
 	+add_word slack, total, total
 	rts
 
-dim	!byte 0, 0, 0
+; Copies the dimensions for the next gift and zeroes the total.
+init_gift:
+	; copy next dimensions (1 byte each)
+	ldy #2
+.copy_dim
+	lda (next_gift),y
+	sta dim,y
+	dey
+	bpl .copy_dim
+	; clear intermediate values and total
+	lda #0
+	ldy #9
+.zero_values
+	sta area1,y
+	dey
+	bpl .zero_values
+	rts
+
+; data used when calculating per gift results
+dim	!byte 0, 0, 0		; dimensions of one gift
 area1	!word 0
 area2	!word 0
 area3	!word 0
 slack   !word 0
-total   !word 0
+total   !word 0			; result for one gift
 
 ; Multiply A * Y using add-and-shift.
 ; Return result in AY.
