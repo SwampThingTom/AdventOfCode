@@ -64,9 +64,17 @@ petscii_cr=13		; Same as ascii (shrug)
 ; Store 16-bit result in .result.
 !macro calc_area .dim1, .dim2, .result {
 	lda .dim1
-	ldy .dim2
-	jsr mul8
-	sty .result
+	sta mult1
+	lda .dim2
+	sta mult2
+	lda #0
+	sta mult1+1
+	sta mult2+1
+	jsr mul_word
+	; copy lower 16-bit word to result
+	lda mult1+2
+	sta .result
+	lda mult1+3
 	sta .result+1
 }
 
@@ -234,35 +242,46 @@ area3	!word 0
 slack   !word 0
 total   !word 0			; result for one gift
 
-; Multiply A * Y using add-and-shift.
-; Return result in AY.
-; https://wiki.nesdev.org/w/index.php/8-bit_Multiply
-mul8
-	sty factor
-	ldy #0
-	sty mul_res
-	sty mul_res+1
-	ldy #8		; shift count
-.add
-	lsr
-	bcc .shift
-	pha
-	clc
-	lda mul_res+1
-	adc factor
-	sta mul_res+1
-	pla
+; Multiply two 16-bit words in mult1 and mult2 using add-and-shift.
+; The 32-bit result will overwrite mult1 and mult2.
+; http://forum.6502.org/viewtopic.php?p=2846#p2846
+mul_word
+	; move multiplicand to scratchpad
+	lda mult2
+	sta scratch
+	lda mult2+1
+	sta scratch+1
+	lda #0
+	sta mult2
+	sta mult2+1
+	ldy #$10		; shift count
 .shift
-	lsr mul_res+1
-	ror mul_res
+	; shift 32-bits
+	asl mult2
+	rol mult2+1
+	rol mult1
+	rol mult1+1
+	bcc .next
+	; add multiplier to result
+	clc
+	lda scratch
+	adc mult2
+	sta mult2
+	lda scratch+1
+	adc mult2+1
+	sta mult2+1
+	; if carry set, inc low byte of high word
+	lda 0
+	adc mult1
+	sta mult1
+.next	; are we done?
 	dey
-	bne .add
-	ldy mul_res
-	lda mul_res+1
+	bne .shift
 	rts
 
-factor	!byte 0
-mul_res	!word 0
+mult1	!word 0
+mult2	!word 0
+scratch	!word 0
 
 ; Convert 32-bit integer in result to a hex string.
 ; Place result in res_hex.
