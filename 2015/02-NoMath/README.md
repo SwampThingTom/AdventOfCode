@@ -1,5 +1,7 @@
 # Advent of Code 2015
-## [Day 2](https://adventofcode.com/2015/day/1) - I Was Told There Would Be No Math
+## [Day 2](https://adventofcode.com/2015/day/2) - I Was Told There Would Be No Math
+
+![Commodore 64 Screenshot](docs/c64-screenshot.png)
 
 The [6502](https://en.wikipedia.org/wiki/MOS_Technology_6502) microprocessor was ubiquitous in the early to mid-80s, powering almost all of the popular home computers and video games consoles.
 Atari 2600, Apple II, Atari 400/800, Commodore 64, NES, and many more all used a 6502.
