@@ -5,12 +5,28 @@
 #include <string.h>
 #include <CommonCrypto/CommonDigest.h>
 
+// Compares the given number of nibbles (half-byte / semi-octet) of data with 0.
+// Returns 0 if they are all equal to 0, otherwise returns -1.
+int compareNibblesToZero(unsigned char data[], int count) {
+    int byteIndex = 0;
+    while (count > 4) {
+        if (*((int16_t *)(data+byteIndex)) != 0) {
+            return -1;
+        }
+        count -= 4;
+        byteIndex += 2;
+    }
+    unsigned char lastByte = *(data+byteIndex);
+    if (count == 1) {
+        lastByte &= 0xf0;
+    }
+    return lastByte == 0 ? 0 : -1;
+}
+
 int mineAdventCoin(const char secret_key[], int leading_digits)
 {
-    static const char success[] = "0000000000000000";
     unsigned char digest[CC_MD5_DIGEST_LENGTH];
     char attempt[CC_MD5_DIGEST_LENGTH * 2] = {0};
-    char result[CC_MD5_DIGEST_LENGTH * 2] = {0};
 
     for (int value = 1; ; value++) {
         sprintf(attempt, "%s%d", secret_key, value);
@@ -20,12 +36,8 @@ int mineAdventCoin(const char secret_key[], int leading_digits)
         CC_MD5_Update(&context, attempt, (CC_LONG)strlen(attempt));
         CC_MD5_Final(digest, &context);
 
-        for (size_t i = 0; i < CC_MD5_DIGEST_LENGTH; i++) {
-            sprintf(result + i * 2, "%.2x", digest[i]);
-        }
-
-        if (memcmp(result, success, leading_digits) == 0) {
-           return value;
+        if (compareNibblesToZero(digest, leading_digits) == 0) {
+            return value;
         }
     }
 }
