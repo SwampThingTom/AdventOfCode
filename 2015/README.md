@@ -7,4 +7,5 @@ I'm doing them in roughly the order in which I learned them.
 Day 1: BASIC (1980-1985)\
 Day 2: 6502 Assembly (1982-1986)\
 Day 3: Pascal (1984-1989)\
-Day 4: C (1986-2004+)
+Day 4: C (1986-2004+)\
+Day 5: LISP (1987-1990)
