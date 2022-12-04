@@ -21,7 +21,8 @@ The other thing that hurts performance is that its runtime uses garbage collecti
 
 Because of those performance problems, I had to give up on my initial implementation that used a Set to track Christmas Lights.
 That's too bad because Smalltalk's Set operations are nice and the implementation was simpler.
-However I let it run overnight on the actual input and it never finished, so I had to change to this Array-based implementation.
+However I let it run overnight on the actual input and it never finished, so I changed to this Array-based implementation.
+That said, it turned out the Array implementation was better for part 2 so I guess it turned out for the best.
 
 Overall, though, it was fun to solve an AoC problem in Smalltalk.
 My experience in Objective-C made it easier to get back to, despite the number of decades that have passed since I had last touched it.

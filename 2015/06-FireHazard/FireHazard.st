@@ -16,30 +16,30 @@ Object subclass: ChristmasLights [
 		lights := ByteArray new: (1000 * 1000)
 	]
 	
-	count [ ^ (lights select: [ :item | item = 1 ]) size ]
+	count [
+		" Returns the count of lights that are turned on. "
+		^ (lights select: [ :item | item = 1 ]) size
+	]
 
 	turnOn: point [
+		" Turns on the light at point. "
 		lights at: (self indexAtPoint: point) put: 1
 	]
 
 	turnOff: point [
+		" Turns off the light at point. "
 		lights at: (self indexAtPoint: point) put: 0
 	]
 
 	toggle: point [
+		" Toggles the light at point. "
 		((lights at: (self indexAtPoint: point)) = 1)
 			ifTrue: [ self turnOff: point ]
 			ifFalse: [ self turnOn: point ]
 	]
 
-	doCommand: command point: point [
-		(command = 'toggle') ifTrue: [ ^ self toggle: point ].
-		(command = 'on') ifTrue: [ ^ self turnOn: point ].
-		(command = 'off') ifTrue: [ ^ self turnOff: point ].
-		self error: 'Invalid command'
-	]
-
 	do: operation [
+		" Performs the given operation on a range of lights. "
 		(operation start x) to: (operation end x) do: [ :x |
 			(operation start y) to: (operation end y) do: [ :y |
 				self doCommand: (operation command) point: x@y
@@ -47,8 +47,61 @@ Object subclass: ChristmasLights [
 		]
 	]
 
+	doCommand: command point: point [
+		" Either toggle, turn on, or turn off the light at point. "
+		(command = 'toggle') ifTrue: [ ^ self toggle: point ].
+		(command = 'on') ifTrue: [ ^ self turnOn: point ].
+		(command = 'off') ifTrue: [ ^ self turnOff: point ].
+		self error: 'Invalid command'
+	]
+
 	indexAtPoint: point [
 		^ ((point x) * 1000) + point y + 1
+	]
+]
+
+ChristmasLights subclass: ChristmasLights2 [
+	" A collection of christmas lights with adjustable brightness. "
+
+	count [ 
+		" The sum of the brightness for all lights. "
+		| sum |
+		sum := 0.
+		lights do: [ :a | (a notNil) ifTrue: [ sum := sum + a ]].
+		^ sum
+	]
+
+	turnOn: point [
+		" Adds 1 to the brightness of the light at point. "
+		| index current |
+		index := (self indexAtPoint: point).
+		current := self lightAt: index.
+		lights at: index put: (current + 1)
+	]
+
+	turnOff: point [
+		" Subtracts 1 from the brightness of the light at point. 
+		  Will not go below a brightness of 0. "
+		| index current |
+		index := (self indexAtPoint: point).
+		current := self lightAt: index.
+		(current > 0) ifTrue: [ lights at: index put: (current - 1) ]
+	]
+
+	toggle: point [
+		" Adds 2 to the brightness of the light at point. "
+		| index current |
+		index := (self indexAtPoint: point).
+		current := self lightAt: index.
+		lights at: index put: (current + 2)
+	]
+
+	lightAt: index [
+		" Nil-coalesces array values. "
+		| value |
+		value := lights at: index.
+		(value isNil) ifTrue: [ value := 0 ].
+		^ value
 	]
 ]
 
@@ -114,14 +167,19 @@ Object subclass: OperationParser [
 	]
 ]
 
-lights := ChristmasLights new.
+lights1 := ChristmasLights new.
+lights2 := ChristmasLights2 new.
 
 file := FileStream open: 'input.txt' mode: FileStream read.
 file linesDo: [ :line |
 	operation := OperationParser parse: line.
-	lights do: operation	
+	lights1 do: operation.
+	lights2 do: operation
 ].
 file close.
 
 'Part 1: ' display.
-lights count displayNl
+lights1 count displayNl
+
+'Part 2: ' display.
+lights2 count displayNl
