@@ -1,3 +1,5 @@
+#!/usr/bin/env sbcl --script
+
 ;; InternElves
 ;; https://adventofcode.com/2015/day/5
 
