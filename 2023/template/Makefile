@@ -1,0 +1,26 @@
+YEAR=2023
+DAY=<day>
+APP=<name>
+SRC=$(APP).rs
+SESSION=~/.aoc-session
+
+all: run
+
+run: input.txt $(APP)
+	./$(APP)
+
+clean:
+	rm -rf input.txt $(APP)
+
+test: input.txt
+	rustc $(SRC) --test
+	./$(APP)
+
+input.txt:
+	@test -s $(SESSION) || { echo "Advent of Code session file not found ($(SESSION))."; exit 1; }
+	curl --cookie "session=$$(cat $(SESSION))" "https://adventofcode.com/$(YEAR)/day/$(DAY)/input" -o $@
+
+$(APP): $(SRC)
+	rustc $(SRC)
+
+.PHONY: all run clean test
