@@ -9,12 +9,12 @@ all: run
 run: input.txt $(APP)
 	./$(APP)
 
-clean:
-	rm -rf input.txt $(APP)
-
-test: input.txt
+test:
 	rustc $(SRC) --test
 	./$(APP)
+
+clean:
+	rm -rf input.txt $(APP)
 
 input.txt:
 	@test -s $(SESSION) || { echo "Advent of Code session file not found ($(SESSION))."; exit 1; }
@@ -23,4 +23,4 @@ input.txt:
 $(APP): $(SRC)
 	rustc $(SRC)
 
-.PHONY: all run clean test
+.PHONY: all run test clean
