@@ -39,8 +39,43 @@ fn solve_part1(input: &Vec<String>) -> u32 {
     input.into_iter().map(calibration_value).sum()
 }
 
+fn calibration_value_part2(str: &String) -> u32 {
+    let mut digits = Vec::new();
+    for (i, c) in str.chars().enumerate() {
+        if c.is_numeric() {
+            digits.push(c.to_digit(10).unwrap());
+        } else {
+            let sub = &str[i..];
+            if sub.starts_with("zero") {
+                digits.push(0);
+            } else if sub.starts_with("one") {
+                digits.push(1);
+            } else if sub.starts_with("two") {
+                digits.push(2);
+            } else if sub.starts_with("three") {
+                digits.push(3);
+            } else if sub.starts_with("four") {
+                digits.push(4);
+            } else if sub.starts_with("five") {
+                digits.push(5);
+            } else if sub.starts_with("six") {
+                digits.push(6);
+            } else if sub.starts_with("seven") {
+                digits.push(7);
+            } else if sub.starts_with("eight") {
+                digits.push(8);
+            } else if sub.starts_with("nine") {
+                digits.push(9);
+            }
+        }
+    }
+    let msd = digits.first().unwrap();
+    let lsd = digits.last().unwrap();
+    msd * 10 + lsd
+}
+
 fn solve_part2(input: &Vec<String>) -> u32 {
-    todo!()
+    input.into_iter().map(calibration_value_part2).sum()
 }
 
 fn main() {
@@ -49,13 +84,14 @@ fn main() {
     let part1 = solve_part1(&input);
     println!("Part 1: {}", part1);
 
-    // let part2 = solve_part2(&input);
-    // println!("Part 2: {}", part2);
+    let part2 = solve_part2(&input);
+    println!("Part 2: {}", part2);
 }
 
 #[cfg(test)]
 mod tests {
     use solve_part1;
+    use solve_part2;
 
     #[test]
     fn test_part1() {
@@ -67,5 +103,20 @@ mod tests {
         ].iter().map(|s| s.to_string()).collect();
         let result = solve_part1(&input);
         assert_eq!(result, 142)
+    }
+
+    #[test]
+    fn test_part2() {
+        let input: Vec<_> = [
+            "two1nine",
+            "eightwothree",
+            "abcone2threexyz",
+            "xtwone3four",
+            "4nineeightseven2",
+            "zoneight234",
+            "7pqrstsixteen",
+        ].iter().map(|s| s.to_string()).collect();
+        let result = solve_part2(&input);
+        assert_eq!(result, 281)
     }
 }
