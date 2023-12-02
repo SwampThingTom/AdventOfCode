@@ -17,21 +17,17 @@ struct Cubes {
 type Game = Vec<Cubes>;
 
 fn parse_cube(line: &str) -> Cubes {
-    let mut red = 0;
-    let mut green = 0;
-    let mut blue = 0;
-    for cube in line.split(", ") {
+    line.split(", ").fold(Cubes { red: 0, green: 0, blue: 0 }, |result, cube| {
         let mut parts = cube.split(' ');
         let count = parts.next().unwrap().parse::<u32>().unwrap();
         let color = parts.next().unwrap();
         match color {
-            "red" => red += count,
-            "green" => green += count,
-            "blue" => blue += count,
+            "red" => Cubes { red: result.red + count, ..result },
+            "green" => Cubes { green: result.green + count, ..result },
+            "blue" => Cubes { blue: result.blue + count, ..result },
             _ => panic!("Unknown color {}", color),
         }
-    }
-    Cubes { red, green, blue }
+    })
 }
 
 fn parse_line(line: &str) -> Game {
