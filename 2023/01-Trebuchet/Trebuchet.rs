@@ -29,17 +29,17 @@ fn get_last_digit(str: &str) -> u32 {
     panic!("No digit found in {}", str);
 }
 
-fn calibration_value(str: &String) -> u32 {
-    let msd = get_first_digit(&str);
-    let lsd = get_last_digit(&str);
+fn calibration_value(str: &str) -> u32 {
+    let msd = get_first_digit(str);
+    let lsd = get_last_digit(str);
     msd * 10 + lsd
 }
 
-fn solve_part1(input: &Vec<String>) -> u32 {
-    input.into_iter().map(calibration_value).sum()
+fn solve_part1(input: &[String]) -> u32 {
+    input.iter().map(|line| calibration_value(line)).sum()
 }
 
-fn calibration_value_part2(str: &String) -> u32 {
+fn calibration_value_part2(str: &str) -> u32 {
     let mut digits = Vec::new();
     for (i, c) in str.chars().enumerate() {
         if c.is_numeric() {
@@ -74,8 +74,8 @@ fn calibration_value_part2(str: &String) -> u32 {
     msd * 10 + lsd
 }
 
-fn solve_part2(input: &Vec<String>) -> u32 {
-    input.into_iter().map(calibration_value_part2).sum()
+fn solve_part2(input: &[String]) -> u32 {
+    input.iter().map(|line| calibration_value_part2(line)).sum()
 }
 
 fn main() {

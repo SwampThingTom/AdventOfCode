@@ -15,6 +15,7 @@ clean:
 test:
 	rustc $(SRC) --test
 	./$(APP)
+	rm ./$(APP)
 
 input.txt:
 	@test -s $(SESSION) || { echo "Advent of Code session file not found ($(SESSION))."; exit 1; }

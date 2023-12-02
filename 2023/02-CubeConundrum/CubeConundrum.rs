@@ -21,7 +21,7 @@ fn parse_cube(line: &str) -> Cubes {
     let mut green = 0;
     let mut blue = 0;
     for cube in line.split(", ") {
-        let mut parts = cube.split(" ");
+        let mut parts = cube.split(' ');
         let count = parts.next().unwrap().parse::<u32>().unwrap();
         let color = parts.next().unwrap();
         match color {
@@ -35,7 +35,7 @@ fn parse_cube(line: &str) -> Cubes {
 }
 
 fn parse_line(line: &str) -> Game {
-    line.split(": ").skip(1).next().unwrap()
+    line.split(": ").nth(1).unwrap()
         .split("; ")
         .map(parse_cube)
         .collect()
