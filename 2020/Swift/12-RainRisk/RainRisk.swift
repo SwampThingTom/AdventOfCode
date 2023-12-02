@@ -161,7 +161,7 @@ func runWaypoint(_ actions: [(Character, Int)]) -> Location {
     return results.0
 }
 
-let actionStrings = readFile(named: "12-input").filter { $0.count > 0 }
+let actionStrings = readFile(named: "../../input/12-input").filter { $0.count > 0 }
 let actions = parse(strings: actionStrings)
 let location = run(actions)
 let distance = abs(location.0) + abs(location.1)

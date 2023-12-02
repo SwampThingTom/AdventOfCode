@@ -155,7 +155,7 @@ class TileFloor {
     }
 }
 
-let input = readFile(named: "24-input").filter { !$0.isEmpty }
+let input = readFile(named: "../../input/24-input").filter { !$0.isEmpty }
 let directions = input.map { parse(line: $0) }
 
 let floor = TileFloor()

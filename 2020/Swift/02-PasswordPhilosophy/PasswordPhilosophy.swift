@@ -79,7 +79,7 @@ func parseRequiredChar(string: Substring) -> Character? {
     return string.dropLast().first
 }
 
-let passwordPolicyStrings = readFile(named: "02-input")
+let passwordPolicyStrings = readFile(named: "../../input/02-input")
 let passwordPolicies = passwordPolicyStrings.compactMap { parsePasswordPolicy(string: $0) }
 
 let validPasswordsPolicyOne = passwordPolicies.filter { $0.isValidForPolicyOne() }

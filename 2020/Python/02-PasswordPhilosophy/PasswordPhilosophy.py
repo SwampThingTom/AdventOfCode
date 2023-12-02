@@ -34,7 +34,7 @@ def parse_values(string):
     components = string.split("-")
     return (int(components[0]), int(components[1]))
 
-password_policies = list(map(parse_password_policy, read_file('02-input.txt')))
+password_policies = list(map(parse_password_policy, read_file('../../input/02-input.txt')))
 valid_passwords_policy_one = list(filter(PasswordPolicy.is_valid_policy_one, password_policies))
 print("There are {0} valid passwords for policy one".format(len(valid_passwords_policy_one)))
 

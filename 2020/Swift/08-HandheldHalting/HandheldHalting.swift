@@ -119,7 +119,7 @@ func modify(program: [Instruction], address: Int) -> [Instruction] {
     return modified
 }
 
-let programStrings = readFile(named: "08-input")
+let programStrings = readFile(named: "../../input/08-input")
 let program = programStrings.compactMap { parse(source: $0) }
 let (accumulator, executedAddresses, success) = run(program)
 assert(!success)  // program should terminate because of infinite loop

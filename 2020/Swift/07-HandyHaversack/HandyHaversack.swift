@@ -66,7 +66,7 @@ func bagCount(from rules: [String : [(Int, String)]], for bag: String) -> Int {
     return innerBags.map { $0.0 * (1 + bagCount(from: rules, for: $0.1)) }.reduce(0, +)
 }
 
-let ruleStrings = readFile(named: "07-input")
+let ruleStrings = readFile(named: "../../input/07-input")
 let rules = ruleStrings.compactMap { parse(rule: $0) }.reduce(into: [:]) { $0[$1.0] = $1.1 }
 let bagsThatHoldShinyGold = bags(from: rules, thatCanHold: "shiny gold")
 print("There are \(bagsThatHoldShinyGold.count) bags that can hold shiny gold bags")

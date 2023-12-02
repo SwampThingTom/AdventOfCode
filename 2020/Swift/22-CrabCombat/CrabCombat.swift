@@ -237,7 +237,7 @@ class RecursiveCombat: Combat {
     }
 }
 
-let input = readFile(named: "22-input")
+let input = readFile(named: "../../input/22-input")
 let players = parse(input)
 
 if PRINT_GAME_UPDATES {

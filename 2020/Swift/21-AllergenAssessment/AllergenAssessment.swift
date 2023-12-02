@@ -92,7 +92,7 @@ func solve(_ foods: [Food]) -> (Set<String>, String) {
     return (ingredients, sortedDangerousIngredientsList(solvedAllergens))
 }
 
-let input = readFile(named: "21-input").filter { !$0.isEmpty }
+let input = readFile(named: "../../input/21-input").filter { !$0.isEmpty }
 let foods = parse(input)
 
 let (nonAllergicIngredients, dangerousIngredients) = solve(foods)

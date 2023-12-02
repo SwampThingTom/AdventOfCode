@@ -111,7 +111,7 @@ func permutationCountForSequenceOfOnes(length: Int) -> Int {
     return count
 }
 
-let adapters = readFile(named: "10-input").compactMap { Int($0) }
+let adapters = readFile(named: "../../input/10-input").compactMap { Int($0) }
 let sortedAdapters = sortAndAddDevice(to: adapters)
 let joltDifferences = findJoltDifferences(adapters: sortedAdapters)
 let product = joltDifferences[1]! * joltDifferences[3]!

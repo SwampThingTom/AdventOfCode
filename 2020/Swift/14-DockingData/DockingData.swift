@@ -113,7 +113,7 @@ class DockingComputer {
     }
 }
 
-let program = readFile(named: "14-input").filter { !$0.isEmpty }
+let program = readFile(named: "../../input/14-input").filter { !$0.isEmpty }
 let computer = DockingComputer()
 for instruction in program {
     computer.execute(instruction: instruction)

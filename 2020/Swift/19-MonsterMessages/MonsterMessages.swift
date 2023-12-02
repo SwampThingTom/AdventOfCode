@@ -129,7 +129,7 @@ func updatedRulesForPart2(_ rules: Rules) -> Rules {
     return updatedRules
 }
 
-let input = readFile(named: "19-input")
+let input = readFile(named: "../../input/19-input")
 let (rules, messages) = parse(input)
 
 let matches = messages.filter { doesMatch($0, ruleIndex: 0, from: rules) }

@@ -99,7 +99,7 @@ def permutation_count(length):
     permutation_counts[length] = count
     return count
 
-adapters = list(map(int, read_file("10-input.txt")))
+adapters = list(map(int, read_file("../../input/10-input.txt")))
 sort_and_add_device(adapters)
 differences = find_jolt_differences(adapters)
 product = differences[1] * differences[3]

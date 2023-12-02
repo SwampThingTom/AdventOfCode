@@ -29,7 +29,7 @@ def questionsAnyoneAnswered(declarations):
 def questionsAllAnswered(declarations):
     return reduce(lambda result, value: result.intersection(value), declarations, set("abcdefghijklmnopqrstuvwxyz"))
 
-groups = parse_groups(read_file('06-input.txt'))
+groups = parse_groups(read_file('../../input/06-input.txt'))
 
 any_answers = map(lambda x: questionsAnyoneAnswered(x), groups)
 sum_of_any_question_counts = sum(map(lambda x: len(x), any_answers))

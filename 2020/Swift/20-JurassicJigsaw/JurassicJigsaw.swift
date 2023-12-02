@@ -450,7 +450,7 @@ func solve(_ puzzle: Puzzle, with tileIds: Set<Int>) -> Puzzle? {
     return nil
 }
 
-let input = readFile(named: "20-input")
+let input = readFile(named: "../../input/20-input")
 //let input = mockData()
 let tiles = parse(input)
 

@@ -63,7 +63,7 @@ func moduloInverse(a: Int, m: Int) -> Int {
     return result >= 0 ? result : result + m
 }
 
-let scheduleStrings =  readFile(named: "13-input").filter { $0.count > 0 }
+let scheduleStrings =  readFile(named: "../../input/13-input").filter { $0.count > 0 }
 let minDepartTime = Int(scheduleStrings[0])!
 let busIDs = scheduleStrings[1].components(separatedBy: ",").compactMap { Int($0) }
 let departureBus = departure(after: minDepartTime, for: busIDs)

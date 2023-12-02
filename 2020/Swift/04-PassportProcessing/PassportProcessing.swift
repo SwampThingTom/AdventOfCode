@@ -105,7 +105,7 @@ func isValidPassportId(_ string: String?) -> Bool {
     return string.unicodeScalars.allSatisfy { valid.contains($0) }
 }
 
-let passportStrings = readFile(named: "04-input")
+let passportStrings = readFile(named: "../../input/04-input")
 let passports = parsePassports(lines: passportStrings)
 let passportsWithRequiredFields = passports.filter { hasRequiredFields(passport: $0) }
 print("There are \(passportsWithRequiredFields.count) passports with all of the required fields")

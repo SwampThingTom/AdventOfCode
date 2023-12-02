@@ -61,7 +61,7 @@ func findMissing(from sortedIds: [Int]) -> Int? {
     return nil
 }
 
-let boardingPasses = readFile(named: "05-input").filter { $0.count == 10 }
+let boardingPasses = readFile(named: "../../input/05-input").filter { $0.count == 10 }
 let seatIds = boardingPasses.map { seatId(for: seat(for: $0)) }
 let maxSeatId = seatIds.max()!
 print("The highest seat ID is \(maxSeatId)")

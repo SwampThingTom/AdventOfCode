@@ -97,7 +97,7 @@ def run_until_stable(seat_map, max_occupied_seats, adjacent_seat_dictionary):
             return new_seat_map
         last_seat_map = SeatMap(new_seat_map.seats)
 
-seats = [ list(line.strip()) for line in read_file("11-input.txt") ]
+seats = [ list(line.strip()) for line in read_file("../../input/11-input.txt") ]
 seat_map = SeatMap(seats)
 adjacent_seats = make_adjacent_seat_dictionary(seat_map, find_adjacent_seats)
 final_adjacent_seat_map = run_until_stable(seat_map, 4, adjacent_seats)

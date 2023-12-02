@@ -59,7 +59,7 @@ func countTrees(onSlope slope: (right: Int, down: Int), in map: Map) -> Int {
     return count
 }
 
-let mapStrings = readFile(named: "03-input")
+let mapStrings = readFile(named: "../../input/03-input")
 let map = parseMap(strings: mapStrings)
 
 let treeCount = countTrees(onSlope: (3, 1), in: map)

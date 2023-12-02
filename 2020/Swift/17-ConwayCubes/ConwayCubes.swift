@@ -267,7 +267,7 @@ struct ConwayCube4D: CustomStringConvertible {
     }
 }
 
-let input = readFile(named: "17-input")
+let input = readFile(named: "../../input/17-input")
 var cube = ConwayCube(input: input)
 for _ in 1...6 {
     cube = cube.runCycle()

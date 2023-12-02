@@ -28,7 +28,7 @@ def seat(boarding_pass):
 def seat_id(seat):
     return seat[0] * 8 + seat[1]
 
-boarding_passes = [ line.strip() for line in read_file('05-input.txt') ]
+boarding_passes = [ line.strip() for line in read_file('../../input/05-input.txt') ]
 seat_ids = [ seat_id(seat(boarding_pass)) for boarding_pass in boarding_passes ]
 max_seat_id = max(seat_ids)
 print("The highest seat ID is {0}".format(max_seat_id))

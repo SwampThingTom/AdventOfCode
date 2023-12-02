@@ -44,7 +44,7 @@ def contains(bags, target):
 def bag_count(rules, bag):
     return sum([ count * (1 + bag_count(rules, inner_bags)) for count, inner_bags in rules[bag] ])
 
-rule_strings = read_file("07-input.txt")
+rule_strings = read_file("../../input/07-input.txt")
 rule_tuples = [ parse_rule(rule) for rule in rule_strings ]
 rules = { bag: allowable_bags for bag, allowable_bags in rule_tuples }
 bags_that_hold_shiny_gold = bags(rules, "shiny gold")

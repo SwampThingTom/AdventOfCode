@@ -29,7 +29,7 @@ class Map:
             row += slope[1]
         return count
 
-tree_map = Map(list(line.strip() for line in read_file('03-input.txt')))
+tree_map = Map(list(line.strip() for line in read_file('../../input/03-input.txt')))
 tree_count = tree_map.count_trees((3, 1))
 print("There are {0} trees for a slope of (3, 1)".format(tree_count))
 

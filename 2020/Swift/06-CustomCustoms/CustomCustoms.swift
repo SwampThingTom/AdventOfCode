@@ -28,7 +28,7 @@ func questionsAllAnswered(declarations: ArraySlice<String>) -> Set<Character> {
     }
 }
 
-let declarationsStrings = readFile(named: "06-input")
+let declarationsStrings = readFile(named: "../../input/06-input")
 let groups = declarationsStrings.split(separator: "")
 
 let anyAnswers = groups.map { questionsAnyoneAnswered(declarations: $0) }

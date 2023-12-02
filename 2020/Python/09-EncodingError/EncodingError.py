@@ -35,7 +35,7 @@ def find_weakness(data, target):
     weakness_data = data[lower_index:upper_index]
     return min(weakness_data) + max(weakness_data)
 
-data = list(map(int, read_file("09-input.txt")))
+data = list(map(int, read_file("../../input/09-input.txt")))
 invalid_value = find_invalid_value(data, 25)
 print(invalid_value)
 

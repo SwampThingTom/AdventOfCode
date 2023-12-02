@@ -52,7 +52,7 @@ def toggle(instruction):
         return ("jmp", operand)
     return instruction
 
-program = [ parse(line.strip()) for line in read_file("08-input.txt") ]
+program = [ parse(line.strip()) for line in read_file("../../input/08-input.txt") ]
 accumulator, executed, success = run(program)
 assert not success
 print("Before the infinite loop starts, the value in the accumulator was {0}".format(accumulator))

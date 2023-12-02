@@ -21,7 +21,7 @@ def find_three_2020(expenses):
                     return (expenses[i], expenses[j], expenses[k])
 
 
-expenses = list(map(int, read_file('01-input.txt')))
+expenses = list(map(int, read_file('../../input/01-input.txt')))
 sum_values = find_2020(expenses)
 product = sum_values[0] * sum_values[1]
 print("The product of the two expenses is {0}".format(product))

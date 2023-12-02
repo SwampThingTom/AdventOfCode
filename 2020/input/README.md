@@ -1,0 +1,1 @@
+This directory will hold downloaded input files from Advent of Code that are shared by Swift and Python solutions.

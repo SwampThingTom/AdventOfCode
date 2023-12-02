@@ -71,7 +71,7 @@ def is_valid_passport_id(value):
     valid = set("0123456789")
     return set(value) <= valid
 
-passports = parse_passports([ line.strip() for line in read_file('04-input.txt') ])
+passports = parse_passports([ line.strip() for line in read_file('../../input/04-input.txt') ])
 passports_with_required_fields = [ passport for passport in passports if has_required_fields(passport) ]
 print("There are {0} passports with all of the required fields".format(len(passports_with_required_fields)))
 

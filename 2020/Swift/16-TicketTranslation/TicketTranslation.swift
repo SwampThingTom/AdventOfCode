@@ -103,7 +103,7 @@ func findMatchingPosition(for validValues: Set<Int>, in tickets: [[Int]], remain
     return result
 }
 
-let input = readFile(named: "16-input")
+let input = readFile(named: "../../input/16-input")
 let (rules, myTicket, otherTickets) = parse(input)
 
 let invalid = invalidValues(forTickets: otherTickets, rules: rules)

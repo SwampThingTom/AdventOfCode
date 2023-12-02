@@ -152,7 +152,7 @@ func runUntilStable(_ seatMap: SeatMap, maxOccupiedSeats: Int, adjacentSeatDicti
     }
 }
 
-let seatStrings = readFile(named: "11-input").filter { $0.count > 0 }
+let seatStrings = readFile(named: "../../input/11-input").filter { $0.count > 0 }
 let seats = parse(seatsString: seatStrings)
 let seatMap = SeatMap(seats: seats)
 let adjacentSeats = makeAdjacentSeatDictionary(seatMap: seatMap, findSeats: findAdjacentSeats(for:in:))

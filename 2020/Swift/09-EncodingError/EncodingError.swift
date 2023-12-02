@@ -61,7 +61,7 @@ func findWeakness(in data: [Int], target: Int) -> Int? {
     return min + max
 }
 
-let data = readFile(named: "09-input").compactMap { Int($0) }
+let data = readFile(named: "../../input/09-input").compactMap { Int($0) }
 let invalidValue = findInvalidValue(in: data, windowSize: 25)!
 print("The first number that does not match the pattern is \(invalidValue)")
 

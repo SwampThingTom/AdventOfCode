@@ -42,7 +42,7 @@ func findThree2020(expenses: [Int]) -> (Int, Int, Int) {
     return (0, 0, 0)
 }
 
-let expenses = readFile(named: "01-input").compactMap { Int($0) }
+let expenses = readFile(named: "../../input/01-input").compactMap { Int($0) }
 let (expense1, expense2) = find2020(expenses: expenses)
 let product = expense1 * expense2
 print("The product of two expenses is \(product)")

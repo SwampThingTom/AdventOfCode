@@ -174,7 +174,7 @@ class ExpressionEvaluator {
     }
 }
 
-let input = readFile(named: "18-input").filter { !$0.isEmpty }
+let input = readFile(named: "../../input/18-input").filter { !$0.isEmpty }
 let sumOfResults = input.reduce(0) { sum, expressionString in
     let evaluator = ExpressionEvaluator()
     let expression = parse(expressionString)
