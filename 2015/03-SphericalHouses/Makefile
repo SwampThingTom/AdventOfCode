@@ -1,7 +1,7 @@
 YEAR=2015
-DAY=4
-APP=StockingStuffer
-SRC=$(APP).c
+DAY=3
+APP=SphericalHouses
+SRC=$(APP).pas
 SESSION=~/.aoc-session
 
 all: run
@@ -20,6 +20,6 @@ build:
 	mkdir -p $@
 
 build/$(APP): build $(SRC)
-	cc -o $@ -Wno-deprecated-declarations $(SRC)
+	fpc -o$@ $(SRC)
 
 .PHONY: all run clean

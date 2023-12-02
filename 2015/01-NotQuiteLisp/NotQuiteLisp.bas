@@ -1,3 +1,5 @@
+#!/usr/bin/env basic
+
 10 rem Not Quite Lisp
 20 rem https://adventofcode.com/2015/day/1
 30 rem
