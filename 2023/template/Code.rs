@@ -37,9 +37,7 @@ fn main() {
 mod tests {
     use super::*;
 
-    const SAMPLE_INPUT: &str = "line1
-line2
-line3";
+    const SAMPLE_INPUT: &str = include_str!("sample_input.txt");
 
     #[test]
     fn test_parse_input() {

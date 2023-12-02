@@ -22,3 +22,4 @@ sed -i '' "s/<day>/$day_num/g" $target_dir/Makefile
 sed -i '' "s/<name>/$name/g" $target_dir/Makefile
 
 echo "$name" > $target_dir/.gitignore
+touch $target_dir/sample_input.txt
