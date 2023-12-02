@@ -79,13 +79,17 @@ fn solve_part2(input: &[String]) -> u32 {
 }
 
 fn main() {
+    let parse_start = std::time::Instant::now();
     let input = read_input();
+    println!("Parsed input ({:?})", parse_start.elapsed());
 
+    let part1_start = std::time::Instant::now();
     let part1 = solve_part1(&input);
-    println!("Part 1: {}", part1);
+    println!("Part 1: {} ({:?})", part1, part1_start.elapsed());
 
+    let part2_start = std::time::Instant::now();
     let part2 = solve_part2(&input);
-    println!("Part 2: {}", part2);
+    println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
 }
 
 #[cfg(test)]

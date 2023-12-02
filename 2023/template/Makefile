@@ -12,6 +12,7 @@ run: input.txt $(APP)
 test:
 	rustc $(SRC) --test
 	./$(APP)
+	rm ./$(APP)
 
 clean:
 	rm -rf input.txt $(APP)
