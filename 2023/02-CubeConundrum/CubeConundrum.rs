@@ -22,9 +22,9 @@ fn parse_cube(line: &str) -> Cubes {
         let count = parts.next().unwrap().parse::<u32>().unwrap();
         let color = parts.next().unwrap();
         match color {
-            "red" => Cubes { red: result.red + count, ..result },
-            "green" => Cubes { green: result.green + count, ..result },
-            "blue" => Cubes { blue: result.blue + count, ..result },
+            "red" => Cubes { red: count, ..result },
+            "green" => Cubes { green: count, ..result },
+            "blue" => Cubes { blue: count, ..result },
             _ => panic!("Unknown color {}", color),
         }
     })
