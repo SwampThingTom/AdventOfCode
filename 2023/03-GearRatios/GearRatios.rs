@@ -103,6 +103,18 @@ fn is_part_number(input: &InputType, location: Point, length: usize) -> bool {
     false
 }
 
+fn add_if_part_number(input: &InputType, line_num: usize, col_num: usize, number_buffer: &String, part_numbers: &mut Vec<PartNumber>) {
+    let length = number_buffer.len();
+    let location = Point { line: line_num, col: col_num - length };
+    if is_part_number(input, location, length) {
+        part_numbers.push(PartNumber {
+            value: number_buffer.parse::<SolutionType>().unwrap(),
+            location: location,
+            length: length,
+        });
+    }
+}
+
 fn find_part_numbers(input: &InputType) -> PartsAndGears {
     let mut part_numbers: Vec<PartNumber> = Vec::new();
     let mut gears: Vec<Point> = Vec::new();
@@ -117,28 +129,12 @@ fn find_part_numbers(input: &InputType) -> PartsAndGears {
                 gears.push(Point { line: line_num, col: col_num });
             }
             if !number_buffer.is_empty() {
-                let length = number_buffer.len();
-                let location = Point { line: line_num, col: col_num - length };
-                if is_part_number(input, location, length) {
-                    part_numbers.push(PartNumber {
-                        value: number_buffer.parse::<SolutionType>().unwrap(),
-                        location: location,
-                        length: length,
-                    });
-                }
+                add_if_part_number(input, line_num, col_num, &number_buffer, &mut part_numbers);
                 number_buffer.clear();
             }
         }
         if !number_buffer.is_empty() {
-            let length = number_buffer.len();
-            let location = Point { line: line_num, col: line.len() - length };
-            if is_part_number(input, location, length) {
-                part_numbers.push(PartNumber {
-                    value: number_buffer.parse::<SolutionType>().unwrap(),
-                    location: location,
-                    length: length,
-                });
-            }
+            add_if_part_number(input, line_num, line.len(), &number_buffer, &mut part_numbers);
             number_buffer.clear();
         }       
     }
