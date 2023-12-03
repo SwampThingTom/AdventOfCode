@@ -20,10 +20,48 @@ struct PartNumber {
     length: usize,
 }
 
+impl PartNumber {
+    fn is_adjacent(&self, point: Point) -> bool {
+        // Convert usize to i32 to avoid underflow.
+        let line = point.line as i32;
+        let col = point.col as i32;
+        let self_line = self.location.line as i32;
+        let self_col = self.location.col as i32;
+        let self_length = self.length as i32;
+
+        if line == self_line && (col == self_col - 1 || col == self_col + self_length) {
+            return true;
+        }
+
+        if (line == self_line - 1 || line == self_line + 1) && 
+           (col >= self_col - 1 && col <= self_col + self_length) {
+            return true;
+        }
+
+        false
+    }
+}
+
 #[derive(Debug, PartialEq)]
 struct PartsAndGears {
     parts: Vec<PartNumber>,
     gears: Vec<Point>,
+}
+
+#[derive(Debug, PartialEq)]
+struct Gear {
+    value1: SolutionType,
+    value2: SolutionType,
+}
+
+impl Gear {
+    fn new(value1: SolutionType, value2: SolutionType) -> Gear {
+        Gear { value1: value1, value2: value2 }
+    }
+
+    fn get_ratio(&self) -> SolutionType {
+        self.value1 * self.value2
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -112,7 +150,6 @@ fn find_part_numbers(input: &InputType) -> PartsAndGears {
             } else {
                 if c == '*' {
                     gears.push(Point { line: line_num, col: c_idx });
-
                 }
                 if number_builder.has_value() {
                     if is_part_number(input, line_num, number_builder.start, number_builder.len()) {
@@ -144,8 +181,20 @@ fn solve_part1(part_numbers: &Vec<PartNumber>) -> SolutionType {
     part_numbers.iter().map(|part_number| part_number.value).sum()
 }
 
-fn solve_part2(input: &InputType) -> SolutionType {
-    todo!()
+fn find_gears(parts: &PartsAndGears) -> Vec<Gear> {
+    parts.gears.iter().map(|gear| {
+        parts.parts.iter().filter(|part| {
+            part.is_adjacent(*gear)
+        }).collect::<Vec<_>>()
+    }).filter(|adjacent_parts| {
+        adjacent_parts.len() == 2
+    }).map(|adjacent_parts| {
+        Gear::new(adjacent_parts[0].value, adjacent_parts[1].value)
+    }).collect()
+}
+
+fn solve_part2(parts: &PartsAndGears) -> SolutionType {
+    find_gears(&parts).iter().map(|gear| gear.get_ratio()).sum()
 }
 
 fn main() {
@@ -158,9 +207,9 @@ fn main() {
     let part1 = solve_part1(&parts.parts);
     println!("Part 1: {} ({:?})", part1, part1_start.elapsed());
 
-    // let part2_start = std::time::Instant::now();
-    // let part2 = solve_part2(&input);
-    // println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
+    let part2_start = std::time::Instant::now();
+    let part2 = solve_part2(&parts);
+    println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
 }
 
 #[cfg(test)]
@@ -224,10 +273,68 @@ mod tests {
     }
 
     #[test]
+    fn test_part_number_is_adjacent() {
+        let part_0_0 = PartNumber {
+            value: 123,
+            location: Point { line: 0, col: 0 },
+            length: 3,
+        };
+        assert_eq!(part_0_0.is_adjacent(Point { line: 0, col: 3 }), true);
+        assert_eq!(part_0_0.is_adjacent(Point { line: 0, col: 4 }), false);
+        assert_eq!(part_0_0.is_adjacent(Point { line: 1, col: 0 }), true);
+        assert_eq!(part_0_0.is_adjacent(Point { line: 1, col: 3 }), true);
+        assert_eq!(part_0_0.is_adjacent(Point { line: 1, col: 4 }), false);
+        assert_eq!(part_0_0.is_adjacent(Point { line: 2, col: 0 }), false);
+
+        let part_0_2 = PartNumber {
+            value: 123,
+            location: Point { line: 0, col: 2 },
+            length: 2,
+        };
+        assert_eq!(part_0_2.is_adjacent(Point { line: 0, col: 0 }), false);
+        assert_eq!(part_0_2.is_adjacent(Point { line: 0, col: 1 }), true);
+        assert_eq!(part_0_2.is_adjacent(Point { line: 0, col: 4 }), true);
+        assert_eq!(part_0_2.is_adjacent(Point { line: 0, col: 5 }), false);
+        assert_eq!(part_0_2.is_adjacent(Point { line: 1, col: 0 }), false);
+        assert_eq!(part_0_2.is_adjacent(Point { line: 1, col: 1 }), true);
+        assert_eq!(part_0_2.is_adjacent(Point { line: 1, col: 4 }), true);
+        assert_eq!(part_0_2.is_adjacent(Point { line: 1, col: 5 }), false);
+        assert_eq!(part_0_2.is_adjacent(Point { line: 2, col: 2 }), false);
+
+        let part_2_2 = PartNumber {
+            value: 123,
+            location: Point { line: 2, col: 2 },
+            length: 1,
+        };
+        assert_eq!(part_2_2.is_adjacent(Point { line: 0, col: 2 }), false);
+        assert_eq!(part_2_2.is_adjacent(Point { line: 1, col: 0 }), false);
+        assert_eq!(part_2_2.is_adjacent(Point { line: 1, col: 1 }), true);
+        assert_eq!(part_2_2.is_adjacent(Point { line: 1, col: 3 }), true);
+        assert_eq!(part_2_2.is_adjacent(Point { line: 1, col: 4 }), false);
+        assert_eq!(part_2_2.is_adjacent(Point { line: 2, col: 0 }), false);
+        assert_eq!(part_2_2.is_adjacent(Point { line: 2, col: 1 }), true);
+        assert_eq!(part_2_2.is_adjacent(Point { line: 2, col: 3 }), true);
+        assert_eq!(part_2_2.is_adjacent(Point { line: 2, col: 4 }), false);
+        assert_eq!(part_2_2.is_adjacent(Point { line: 3, col: 0 }), false);
+        assert_eq!(part_2_2.is_adjacent(Point { line: 3, col: 1 }), true);
+        assert_eq!(part_2_2.is_adjacent(Point { line: 3, col: 3 }), true);
+        assert_eq!(part_2_2.is_adjacent(Point { line: 3, col: 4 }), false);
+        assert_eq!(part_2_2.is_adjacent(Point { line: 4, col: 2 }), false);
+    }
+
+    #[test]
     fn test_part1() {
         let input = parse_input(SAMPLE_INPUT.to_string());
         let parts = find_part_numbers(&input);
         let result = solve_part1(&parts.parts);
         assert_eq!(result, 4361)
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = parse_input(SAMPLE_INPUT.to_string());
+        let parts = find_part_numbers(&input);
+        let result = solve_part2(&parts);
+        assert_eq!(result, 467835)
     }
 }
