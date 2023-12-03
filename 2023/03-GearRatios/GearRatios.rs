@@ -1,26 +1,29 @@
 // GearRatios
 // https://adventofcode.com/2023/day/3
 
-use std::cmp::max;
 use std::cmp::min;
 use std::fs::read_to_string;
-use std::panic;
 
 type InputType = Vec<String>;
 type SolutionType = u32;
 
+#[derive(Debug, PartialEq, Copy, Clone)]
+struct Point {
+    line: usize,
+    col: usize,
+}
+
 #[derive(Debug, PartialEq)]
 struct PartNumber {
     value: SolutionType,
-    line_num: usize,
-    char_num: usize,
+    location: Point,
     length: usize,
 }
 
 #[derive(Debug, PartialEq)]
 struct PartsAndGears {
     parts: Vec<PartNumber>,
-    gears: Vec<(usize, usize)>,
+    gears: Vec<Point>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -100,7 +103,7 @@ fn is_part_number(input: &InputType, line_num: usize, char_num: usize, length: u
 
 fn find_part_numbers(input: &InputType) -> PartsAndGears {
     let mut part_numbers: Vec<PartNumber> = Vec::new();
-    let mut gears: Vec<(usize, usize)> = Vec::new();
+    let mut gears: Vec<Point> = Vec::new();
     let mut number_builder = NumberBuilder::new();
     for (line_num, line) in input.iter().enumerate() {
         for (c_idx, c) in line.chars().enumerate() {
@@ -108,14 +111,14 @@ fn find_part_numbers(input: &InputType) -> PartsAndGears {
                 number_builder.push(c, c_idx);
             } else {
                 if c == '*' {
-                    gears.push((line_num, c_idx));
+                    gears.push(Point { line: line_num, col: c_idx });
+
                 }
                 if number_builder.has_value() {
                     if is_part_number(input, line_num, number_builder.start, number_builder.len()) {
                         part_numbers.push(PartNumber {
                             value: number_builder.get_value(),
-                            line_num: line_num,
-                            char_num: number_builder.start,
+                            location: Point { line: line_num, col: number_builder.start },
                             length: number_builder.len(),
                         });
                     }
@@ -127,8 +130,7 @@ fn find_part_numbers(input: &InputType) -> PartsAndGears {
             if is_part_number(input, line_num, number_builder.start, number_builder.len()) {
                 part_numbers.push(PartNumber {
                     value: number_builder.get_value(),
-                    line_num: line_num,
-                    char_num: number_builder.start,
+                    location: Point { line: line_num, col: number_builder.start },
                     length: number_builder.len(),
                 });
             }
@@ -189,9 +191,9 @@ mod tests {
         assert_eq!(part_numbers[7].value, 598);
         let gears = parts.gears;
         assert_eq!(gears.len(), 3);
-        assert_eq!(gears[0], (1, 3));
-        assert_eq!(gears[1], (4, 3));
-        assert_eq!(gears[2], (8, 5));
+        assert_eq!(gears[0], Point { line: 1, col: 3});
+        assert_eq!(gears[1], Point { line: 4, col: 3});
+        assert_eq!(gears[2], Point { line: 8, col: 5});
     }
 
     #[test]
