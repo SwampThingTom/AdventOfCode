@@ -138,9 +138,8 @@ fn find_part_numbers(input: &InputType) -> PartsAndGears {
     PartsAndGears { parts: part_numbers, gears: gears }
 }
 
-fn solve_part1(input: &InputType) -> SolutionType {
-    find_part_numbers(&input).parts.iter().map(|part_number| part_number.value).sum()
-}
+fn solve_part1(part_numbers: &Vec<PartNumber>) -> SolutionType {
+    part_numbers.iter().map(|part_number| part_number.value).sum()
 }
 
 fn solve_part2(input: &InputType) -> SolutionType {
@@ -150,10 +149,11 @@ fn solve_part2(input: &InputType) -> SolutionType {
 fn main() {
     let parse_start = std::time::Instant::now();
     let input = parse_input(read_to_string("input.txt").unwrap());
+    let parts = find_part_numbers(&input);
     println!("Parsed input ({:?})", parse_start.elapsed());
 
     let part1_start = std::time::Instant::now();
-    let part1 = solve_part1(&input);
+    let part1 = solve_part1(&parts.parts);
     println!("Part 1: {} ({:?})", part1, part1_start.elapsed());
 
     // let part2_start = std::time::Instant::now();
@@ -176,7 +176,8 @@ mod tests {
     #[test]
     fn test_find_part_numbers() {
         let input = parse_input(SAMPLE_INPUT.to_string());
-        let part_numbers = find_part_numbers(&input).parts;
+        let parts = find_part_numbers(&input);
+        let part_numbers = parts.parts;
         assert_eq!(part_numbers.len(), 8);
         assert_eq!(part_numbers[0].value, 467);
         assert_eq!(part_numbers[1].value, 35);
@@ -186,6 +187,11 @@ mod tests {
         assert_eq!(part_numbers[5].value, 755);
         assert_eq!(part_numbers[6].value, 664);
         assert_eq!(part_numbers[7].value, 598);
+        let gears = parts.gears;
+        assert_eq!(gears.len(), 3);
+        assert_eq!(gears[0], (1, 3));
+        assert_eq!(gears[1], (4, 3));
+        assert_eq!(gears[2], (8, 5));
     }
 
     #[test]
@@ -218,7 +224,8 @@ mod tests {
     #[test]
     fn test_part1() {
         let input = parse_input(SAMPLE_INPUT.to_string());
-        let result = solve_part1(&input);
+        let parts = find_part_numbers(&input);
+        let result = solve_part1(&parts.parts);
         assert_eq!(result, 4361)
     }
 }
