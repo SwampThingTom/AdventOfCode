@@ -7,7 +7,7 @@ use std::fs::read_to_string;
 use std::panic;
 
 type InputType = Vec<String>;
-type SolutionType = i32;
+type SolutionType = u32;
 
 #[derive(Debug, PartialEq)]
 struct PartNumber {
@@ -46,8 +46,8 @@ impl NumberBuilder {
         self.start = 0;
     }
 
-    fn get_value(&self) -> i32 {
-        self.buffer.parse::<i32>().unwrap()
+    fn get_value(&self) -> SolutionType {
+        self.buffer.parse::<SolutionType>().unwrap()
     }
 
     fn has_value(&self) -> bool {
