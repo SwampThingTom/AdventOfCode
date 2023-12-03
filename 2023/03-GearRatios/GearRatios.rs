@@ -105,34 +105,34 @@ fn parse_input(input_str: String) -> InputType {
 }
 
 // Return true if a character surrounding the box defined by line_num, char_num, and length is not a digit or a period.
-fn is_part_number(input: &InputType, line_num: usize, char_num: usize, length: usize) -> bool {
-    let start = if char_num == 0 { 0 } else { char_num - 1 };
-    let end = min(char_num + length + 1, input[0].len());
+fn is_part_number(input: &InputType, location: Point, length: usize) -> bool {
+    let start = if location.col == 0 { 0 } else { location.col - 1 };
+    let end = min(location.col + length + 1, input[0].len());
 
     // Check the line above the box.
-    if line_num > 0 {
-        let line = &input[line_num - 1];
+    if location.line > 0 {
+        let line = &input[location.line - 1];
         if !line[start..end].chars().all(|c| c.is_digit(10) || c == '.') {
             return true;
         }
     }
     // Check the line below the box.
-    if line_num < input.len() - 1 {
-        let line = &input[line_num + 1];
+    if location.line < input.len() - 1 {
+        let line = &input[location.line + 1];
         if !line[start..end].chars().all(|c| c.is_digit(10) || c == '.') {
             return true;
         }
     }
     // Check the character to the left of the box.
-    let line = input[line_num].as_bytes();
-    if char_num > 0 {
-        if line[char_num - 1] as char != '.' {
+    let line = input[location.line].as_bytes();
+    if location.col > 0 {
+        if line[location.col - 1] as char != '.' {
             return true;
         }
     }
     // Check the character to the right of the box.
-    if char_num + length < input[line_num].len() {
-        if line[char_num + length] as char != '.' {
+    if location.col + length < input[location.line].len() {
+        if line[location.col + length] as char != '.' {
             return true;
         }
     }
@@ -144,30 +144,32 @@ fn find_part_numbers(input: &InputType) -> PartsAndGears {
     let mut gears: Vec<Point> = Vec::new();
     let mut number_builder = NumberBuilder::new();
     for (line_num, line) in input.iter().enumerate() {
-        for (c_idx, c) in line.chars().enumerate() {
+        for (col_num, c) in line.chars().enumerate() {
             if c.is_digit(10) {
-                number_builder.push(c, c_idx);
-            } else {
-                if c == '*' {
-                    gears.push(Point { line: line_num, col: c_idx });
+                number_builder.push(c, col_num);
+                continue;
+            }
+            if c == '*' {
+                gears.push(Point { line: line_num, col: col_num });
+            }
+            if number_builder.has_value() {
+                let location = Point { line: line_num, col: number_builder.start };
+                if is_part_number(input, location, number_builder.len()) {
+                    part_numbers.push(PartNumber {
+                        value: number_builder.get_value(),
+                        location: location,
+                        length: number_builder.len(),
+                    });
                 }
-                if number_builder.has_value() {
-                    if is_part_number(input, line_num, number_builder.start, number_builder.len()) {
-                        part_numbers.push(PartNumber {
-                            value: number_builder.get_value(),
-                            location: Point { line: line_num, col: number_builder.start },
-                            length: number_builder.len(),
-                        });
-                    }
-                    number_builder.clear();
-                }
+                number_builder.clear();
             }
         }
         if number_builder.has_value() {
-            if is_part_number(input, line_num, number_builder.start, number_builder.len()) {
+            let location = Point { line: line_num, col: number_builder.start };
+            if is_part_number(input, location, number_builder.len()) {
                 part_numbers.push(PartNumber {
                     value: number_builder.get_value(),
-                    location: Point { line: line_num, col: number_builder.start },
+                    location: location,
                     length: number_builder.len(),
                 });
             }
@@ -240,36 +242,38 @@ mod tests {
         assert_eq!(part_numbers[7].value, 598);
         let gears = parts.gears;
         assert_eq!(gears.len(), 3);
-        assert_eq!(gears[0], Point { line: 1, col: 3});
-        assert_eq!(gears[1], Point { line: 4, col: 3});
-        assert_eq!(gears[2], Point { line: 8, col: 5});
+        assert_eq!(gears[0], Point { line: 1, col: 3 });
+        assert_eq!(gears[1], Point { line: 4, col: 3 });
+        assert_eq!(gears[2], Point { line: 8, col: 5 });
     }
 
     #[test]
     fn test_is_part_number() {
         let input_no_surrounding_chars = parse_input("123".to_string());
-        assert_eq!(is_part_number(&input_no_surrounding_chars, 0, 0, 3), false);
+        let point_0_0 = Point { line: 0, col: 0 };
+        assert_eq!(is_part_number(&input_no_surrounding_chars, point_0_0, 3), false);
 
         let input_no_special_chars = parse_input(".....\n.123.\n.....".to_string());
-        assert_eq!(is_part_number(&input_no_special_chars, 1, 1, 3), false);
+        let point_1_1 = Point { line: 1, col: 1 };
+        assert_eq!(is_part_number(&input_no_special_chars, point_1_1, 3), false);
 
         let input_above_left = parse_input("*....\n.123.\n.....".to_string());
-        assert_eq!(is_part_number(&input_above_left, 1, 1, 3), true);
+        assert_eq!(is_part_number(&input_above_left, point_1_1, 3), true);
 
         let input_above_right = parse_input("....*\n.123.\n.....".to_string());
-        assert_eq!(is_part_number(&input_above_right, 1, 1, 3), true);
+        assert_eq!(is_part_number(&input_above_right, point_1_1, 3), true);
 
         let input_below_left = parse_input(".....\n.123.\n*....".to_string());
-        assert_eq!(is_part_number(&input_below_left, 1, 1, 3), true);
+        assert_eq!(is_part_number(&input_below_left, point_1_1, 3), true);
 
         let input_below_right = parse_input(".....\n.123.\n....*".to_string());
-        assert_eq!(is_part_number(&input_below_right, 1, 1, 3), true);
+        assert_eq!(is_part_number(&input_below_right, point_1_1, 3), true);
 
         let input_left = parse_input(".....\n*123.\n.....".to_string());
-        assert_eq!(is_part_number(&input_left, 1, 1, 3), true);
+        assert_eq!(is_part_number(&input_left, point_1_1, 3), true);
 
         let input_right = parse_input(".....\n.123*\n.....".to_string());
-        assert_eq!(is_part_number(&input_right, 1, 1, 3), true);
+        assert_eq!(is_part_number(&input_right, point_1_1, 3), true);
     }
 
     #[test]
