@@ -64,42 +64,6 @@ impl Gear {
     }
 }
 
-#[derive(Debug, PartialEq)]
-struct NumberBuilder {
-    buffer: String,
-    start: usize,
-}
-
-impl NumberBuilder {
-    fn new() -> NumberBuilder {
-        NumberBuilder { buffer: String::new(), start: 0 }
-    }
-
-    fn push(&mut self, c: char, index: usize) {
-        if self.buffer.is_empty() {
-            self.start = index;
-        }
-        self.buffer.push(c);
-    }
-
-    fn clear(&mut self) {
-        self.buffer.clear();
-        self.start = 0;
-    }
-
-    fn get_value(&self) -> SolutionType {
-        self.buffer.parse::<SolutionType>().unwrap()
-    }
-
-    fn has_value(&self) -> bool {
-        !self.buffer.is_empty()
-    }
-
-    fn len(&self) -> usize {
-        self.buffer.len()
-    }
-}
-
 fn parse_input(input_str: String) -> InputType {
     input_str.lines().map(str::to_string).collect()
 }
@@ -142,38 +106,40 @@ fn is_part_number(input: &InputType, location: Point, length: usize) -> bool {
 fn find_part_numbers(input: &InputType) -> PartsAndGears {
     let mut part_numbers: Vec<PartNumber> = Vec::new();
     let mut gears: Vec<Point> = Vec::new();
-    let mut number_builder = NumberBuilder::new();
     for (line_num, line) in input.iter().enumerate() {
+        let mut number_buffer = String::new();
         for (col_num, c) in line.chars().enumerate() {
             if c.is_digit(10) {
-                number_builder.push(c, col_num);
+                number_buffer.push(c);
                 continue;
             }
             if c == '*' {
                 gears.push(Point { line: line_num, col: col_num });
             }
-            if number_builder.has_value() {
-                let location = Point { line: line_num, col: number_builder.start };
-                if is_part_number(input, location, number_builder.len()) {
+            if !number_buffer.is_empty() {
+                let length = number_buffer.len();
+                let location = Point { line: line_num, col: col_num - length };
+                if is_part_number(input, location, length) {
                     part_numbers.push(PartNumber {
-                        value: number_builder.get_value(),
+                        value: number_buffer.parse::<SolutionType>().unwrap(),
                         location: location,
-                        length: number_builder.len(),
+                        length: length,
                     });
                 }
-                number_builder.clear();
+                number_buffer.clear();
             }
         }
-        if number_builder.has_value() {
-            let location = Point { line: line_num, col: number_builder.start };
-            if is_part_number(input, location, number_builder.len()) {
+        if !number_buffer.is_empty() {
+            let length = number_buffer.len();
+            let location = Point { line: line_num, col: line.len() - length };
+            if is_part_number(input, location, length) {
                 part_numbers.push(PartNumber {
-                    value: number_builder.get_value(),
+                    value: number_buffer.parse::<SolutionType>().unwrap(),
                     location: location,
-                    length: number_builder.len(),
+                    length: length,
                 });
             }
-            number_builder.clear();
+            number_buffer.clear();
         }       
     }
     PartsAndGears { parts: part_numbers, gears: gears }
