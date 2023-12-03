@@ -69,6 +69,10 @@ fn parse_input(input_str: String) -> InputType {
     input_str.lines().map(str::to_string).collect()
 }
 
+fn is_symbol(c: char) -> bool {
+    !c.is_ascii_digit() && c != '.'
+}
+
 // Return true if a character surrounding the box defined by line_num, char_num, and length is not a digit or a period.
 fn is_part_number(input: &InputType, location: Point, length: usize) -> bool {
     let start = if location.col == 0 {
@@ -81,20 +85,14 @@ fn is_part_number(input: &InputType, location: Point, length: usize) -> bool {
     // Check the line above the box.
     if location.line > 0 {
         let line = &input[location.line - 1];
-        if !line[start..end]
-            .chars()
-            .all(|c| c.is_ascii_digit() || c == '.')
-        {
+        if line[start..end].chars().any(is_symbol) {
             return true;
         }
     }
     // Check the line below the box.
     if location.line < input.len() - 1 {
         let line = &input[location.line + 1];
-        if !line[start..end]
-            .chars()
-            .all(|c| c.is_ascii_digit() || c == '.')
-        {
+        if line[start..end].chars().any(is_symbol) {
             return true;
         }
     }
