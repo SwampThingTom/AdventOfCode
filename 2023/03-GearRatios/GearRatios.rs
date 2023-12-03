@@ -112,15 +112,15 @@ fn is_part_number(input: &InputType, location: Point, length: usize) -> bool {
 
 fn add_if_part_number(
     input: &InputType,
-    line_num: usize,
-    col_num: usize,
+    line: usize,
+    col: usize,
     number_buffer: &String,
     part_numbers: &mut Vec<PartNumber>,
 ) {
     let length = number_buffer.len();
     let location = Point {
-        line: line_num,
-        col: col_num - length,
+        line,
+        col: col - length,
     };
     if is_part_number(input, location, length) {
         part_numbers.push(PartNumber {
