@@ -9,7 +9,15 @@ use std::panic;
 type InputType = Vec<String>;
 type SolutionType = i32;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
+struct PartNumber {
+    value: SolutionType,
+    line_num: usize,
+    char_num: usize,
+    length: usize,
+}
+
+#[derive(Debug, PartialEq)]
 struct NumberBuilder {
     buffer: String,
     start: usize,
@@ -84,8 +92,8 @@ fn is_part_number(input: &InputType, line_num: usize, char_num: usize, length: u
     false
 }
 
-fn find_part_numbers(input: &InputType) -> Vec<SolutionType> {
-    let mut part_numbers: Vec<i32> = Vec::new();
+fn find_part_numbers(input: &InputType) -> Vec<PartNumber> {
+    let mut part_numbers: Vec<PartNumber> = Vec::new();
     let mut number_builder = NumberBuilder::new();
     for (line_num, line) in input.iter().enumerate() {
         for (c_idx, c) in line.chars().enumerate() {
@@ -93,14 +101,24 @@ fn find_part_numbers(input: &InputType) -> Vec<SolutionType> {
                 number_builder.push(c, c_idx);
             } else if number_builder.has_value() {
                 if is_part_number(input, line_num, number_builder.start, number_builder.len()) {
-                    part_numbers.push(number_builder.get_value());
+                    part_numbers.push(PartNumber {
+                        value: number_builder.get_value(),
+                        line_num: line_num,
+                        char_num: number_builder.start,
+                        length: number_builder.len(),
+                    });
                 }
                 number_builder.clear();
             }
         }
         if number_builder.has_value() {
             if is_part_number(input, line_num, number_builder.start, number_builder.len()) {
-                part_numbers.push(number_builder.get_value());
+                part_numbers.push(PartNumber {
+                    value: number_builder.get_value(),
+                    line_num: line_num,
+                    char_num: number_builder.start,
+                    length: number_builder.len(),
+                });
             }
             number_builder.clear();
         }       
@@ -109,7 +127,8 @@ fn find_part_numbers(input: &InputType) -> Vec<SolutionType> {
 }
 
 fn solve_part1(input: &InputType) -> SolutionType {
-    find_part_numbers(&input).iter().sum()
+    find_part_numbers(&input).iter().map(|part_number| part_number.value).sum()
+}
 }
 
 fn solve_part2(input: &InputType) -> SolutionType {
@@ -147,14 +166,14 @@ mod tests {
         let input = parse_input(SAMPLE_INPUT.to_string());
         let part_numbers = find_part_numbers(&input);
         assert_eq!(part_numbers.len(), 8);
-        assert_eq!(part_numbers[0], 467);
-        assert_eq!(part_numbers[1], 35);
-        assert_eq!(part_numbers[2], 633);
-        assert_eq!(part_numbers[3], 617);
-        assert_eq!(part_numbers[4], 592);
-        assert_eq!(part_numbers[5], 755);
-        assert_eq!(part_numbers[6], 664);
-        assert_eq!(part_numbers[7], 598);
+        assert_eq!(part_numbers[0].value, 467);
+        assert_eq!(part_numbers[1].value, 35);
+        assert_eq!(part_numbers[2].value, 633);
+        assert_eq!(part_numbers[3].value, 617);
+        assert_eq!(part_numbers[4].value, 592);
+        assert_eq!(part_numbers[5].value, 755);
+        assert_eq!(part_numbers[6].value, 664);
+        assert_eq!(part_numbers[7].value, 598);
     }
 
     #[test]
