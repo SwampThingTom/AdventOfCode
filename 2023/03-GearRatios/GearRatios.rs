@@ -56,7 +56,7 @@ struct Gear {
 
 impl Gear {
     fn new(value1: SolutionType, value2: SolutionType) -> Gear {
-        Gear { value1: value1, value2: value2 }
+        Gear { value1, value2 }
     }
 
     fn get_ratio(&self) -> SolutionType {
@@ -76,29 +76,25 @@ fn is_part_number(input: &InputType, location: Point, length: usize) -> bool {
     // Check the line above the box.
     if location.line > 0 {
         let line = &input[location.line - 1];
-        if !line[start..end].chars().all(|c| c.is_digit(10) || c == '.') {
+        if !line[start..end].chars().all(|c| c.is_ascii_digit() || c == '.') {
             return true;
         }
     }
     // Check the line below the box.
     if location.line < input.len() - 1 {
         let line = &input[location.line + 1];
-        if !line[start..end].chars().all(|c| c.is_digit(10) || c == '.') {
+        if !line[start..end].chars().all(|c| c.is_ascii_digit() || c == '.') {
             return true;
         }
     }
     // Check the character to the left of the box.
     let line = input[location.line].as_bytes();
-    if location.col > 0 {
-        if line[location.col - 1] as char != '.' {
-            return true;
-        }
+    if location.col > 0 && line[location.col - 1] as char != '.' {
+        return true;
     }
     // Check the character to the right of the box.
-    if location.col + length < input[location.line].len() {
-        if line[location.col + length] as char != '.' {
-            return true;
-        }
+    if location.col + length < input[location.line].len() && line[location.col + length] as char != '.' {
+        return true;
     }
     false
 }
@@ -109,19 +105,19 @@ fn add_if_part_number(input: &InputType, line_num: usize, col_num: usize, number
     if is_part_number(input, location, length) {
         part_numbers.push(PartNumber {
             value: number_buffer.parse::<SolutionType>().unwrap(),
-            location: location,
-            length: length,
+            location,
+            length,
         });
     }
 }
 
-fn find_part_numbers(input: &InputType) -> PartsAndGears {
-    let mut part_numbers: Vec<PartNumber> = Vec::new();
+fn find_parts_and_gears(input: &InputType) -> PartsAndGears {
+    let mut parts: Vec<PartNumber> = Vec::new();
     let mut gears: Vec<Point> = Vec::new();
     for (line_num, line) in input.iter().enumerate() {
         let mut number_buffer = String::new();
         for (col_num, c) in line.chars().enumerate() {
-            if c.is_digit(10) {
+            if c.is_ascii_digit() {
                 number_buffer.push(c);
                 continue;
             }
@@ -129,19 +125,19 @@ fn find_part_numbers(input: &InputType) -> PartsAndGears {
                 gears.push(Point { line: line_num, col: col_num });
             }
             if !number_buffer.is_empty() {
-                add_if_part_number(input, line_num, col_num, &number_buffer, &mut part_numbers);
+                add_if_part_number(input, line_num, col_num, &number_buffer, &mut parts);
                 number_buffer.clear();
             }
         }
         if !number_buffer.is_empty() {
-            add_if_part_number(input, line_num, line.len(), &number_buffer, &mut part_numbers);
+            add_if_part_number(input, line_num, line.len(), &number_buffer, &mut parts);
             number_buffer.clear();
         }       
     }
-    PartsAndGears { parts: part_numbers, gears: gears }
+    PartsAndGears { parts, gears }
 }
 
-fn solve_part1(part_numbers: &Vec<PartNumber>) -> SolutionType {
+fn solve_part1(part_numbers: &[PartNumber]) -> SolutionType {
     part_numbers.iter().map(|part_number| part_number.value).sum()
 }
 
@@ -158,13 +154,13 @@ fn find_gears(parts: &PartsAndGears) -> Vec<Gear> {
 }
 
 fn solve_part2(parts: &PartsAndGears) -> SolutionType {
-    find_gears(&parts).iter().map(|gear| gear.get_ratio()).sum()
+    find_gears(parts).iter().map(|gear| gear.get_ratio()).sum()
 }
 
 fn main() {
     let parse_start = std::time::Instant::now();
     let input = parse_input(read_to_string("input.txt").unwrap());
-    let parts = find_part_numbers(&input);
+    let parts = find_parts_and_gears(&input);
     println!("Parsed input ({:?})", parse_start.elapsed());
 
     let part1_start = std::time::Instant::now();
@@ -191,7 +187,7 @@ mod tests {
     #[test]
     fn test_find_part_numbers() {
         let input = parse_input(SAMPLE_INPUT.to_string());
-        let parts = find_part_numbers(&input);
+        let parts = find_parts_and_gears(&input);
         let part_numbers = parts.parts;
         assert_eq!(part_numbers.len(), 8);
         assert_eq!(part_numbers[0].value, 467);
@@ -291,7 +287,7 @@ mod tests {
     #[test]
     fn test_part1() {
         let input = parse_input(SAMPLE_INPUT.to_string());
-        let parts = find_part_numbers(&input);
+        let parts = find_parts_and_gears(&input);
         let result = solve_part1(&parts.parts);
         assert_eq!(result, 4361)
     }
@@ -299,7 +295,7 @@ mod tests {
     #[test]
     fn test_part2() {
         let input = parse_input(SAMPLE_INPUT.to_string());
-        let parts = find_part_numbers(&input);
+        let parts = find_parts_and_gears(&input);
         let result = solve_part2(&parts);
         assert_eq!(result, 467835)
     }
