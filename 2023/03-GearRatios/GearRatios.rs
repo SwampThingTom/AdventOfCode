@@ -33,8 +33,9 @@ impl PartNumber {
             return true;
         }
 
-        if (line == self_line - 1 || line == self_line + 1) && 
-           (col >= self_col - 1 && col <= self_col + self_length) {
+        if (line == self_line - 1 || line == self_line + 1)
+            && (col >= self_col - 1 && col <= self_col + self_length)
+        {
             return true;
         }
 
@@ -70,20 +71,30 @@ fn parse_input(input_str: String) -> InputType {
 
 // Return true if a character surrounding the box defined by line_num, char_num, and length is not a digit or a period.
 fn is_part_number(input: &InputType, location: Point, length: usize) -> bool {
-    let start = if location.col == 0 { 0 } else { location.col - 1 };
+    let start = if location.col == 0 {
+        0
+    } else {
+        location.col - 1
+    };
     let end = min(location.col + length + 1, input[0].len());
 
     // Check the line above the box.
     if location.line > 0 {
         let line = &input[location.line - 1];
-        if !line[start..end].chars().all(|c| c.is_ascii_digit() || c == '.') {
+        if !line[start..end]
+            .chars()
+            .all(|c| c.is_ascii_digit() || c == '.')
+        {
             return true;
         }
     }
     // Check the line below the box.
     if location.line < input.len() - 1 {
         let line = &input[location.line + 1];
-        if !line[start..end].chars().all(|c| c.is_ascii_digit() || c == '.') {
+        if !line[start..end]
+            .chars()
+            .all(|c| c.is_ascii_digit() || c == '.')
+        {
             return true;
         }
     }
@@ -93,15 +104,26 @@ fn is_part_number(input: &InputType, location: Point, length: usize) -> bool {
         return true;
     }
     // Check the character to the right of the box.
-    if location.col + length < input[location.line].len() && line[location.col + length] as char != '.' {
+    if location.col + length < input[location.line].len()
+        && line[location.col + length] as char != '.'
+    {
         return true;
     }
     false
 }
 
-fn add_if_part_number(input: &InputType, line_num: usize, col_num: usize, number_buffer: &String, part_numbers: &mut Vec<PartNumber>) {
+fn add_if_part_number(
+    input: &InputType,
+    line_num: usize,
+    col_num: usize,
+    number_buffer: &String,
+    part_numbers: &mut Vec<PartNumber>,
+) {
     let length = number_buffer.len();
-    let location = Point { line: line_num, col: col_num - length };
+    let location = Point {
+        line: line_num,
+        col: col_num - length,
+    };
     if is_part_number(input, location, length) {
         part_numbers.push(PartNumber {
             value: number_buffer.parse::<SolutionType>().unwrap(),
@@ -122,7 +144,10 @@ fn find_parts_and_gears(input: &InputType) -> PartsAndGears {
                 continue;
             }
             if c == '*' {
-                gears.push(Point { line: line_num, col: col_num });
+                gears.push(Point {
+                    line: line_num,
+                    col: col_num,
+                });
             }
             if !number_buffer.is_empty() {
                 add_if_part_number(input, line_num, col_num, &number_buffer, &mut parts);
@@ -132,25 +157,32 @@ fn find_parts_and_gears(input: &InputType) -> PartsAndGears {
         if !number_buffer.is_empty() {
             add_if_part_number(input, line_num, line.len(), &number_buffer, &mut parts);
             number_buffer.clear();
-        }       
+        }
     }
     PartsAndGears { parts, gears }
 }
 
 fn solve_part1(part_numbers: &[PartNumber]) -> SolutionType {
-    part_numbers.iter().map(|part_number| part_number.value).sum()
+    part_numbers
+        .iter()
+        .map(|part_number| part_number.value)
+        .sum()
 }
 
 fn find_gears(parts: &PartsAndGears) -> Vec<Gear> {
-    parts.gears.iter().map(|gear| {
-        parts.parts.iter().filter(|part| {
-            part.is_adjacent(*gear)
-        }).collect::<Vec<_>>()
-    }).filter(|adjacent_parts| {
-        adjacent_parts.len() == 2
-    }).map(|adjacent_parts| {
-        Gear::new(adjacent_parts[0].value, adjacent_parts[1].value)
-    }).collect()
+    parts
+        .gears
+        .iter()
+        .map(|gear| {
+            parts
+                .parts
+                .iter()
+                .filter(|part| part.is_adjacent(*gear))
+                .collect::<Vec<_>>()
+        })
+        .filter(|adjacent_parts| adjacent_parts.len() == 2)
+        .map(|adjacent_parts| Gear::new(adjacent_parts[0].value, adjacent_parts[1].value))
+        .collect()
 }
 
 fn solve_part2(parts: &PartsAndGears) -> SolutionType {
@@ -209,7 +241,10 @@ mod tests {
     fn test_is_part_number() {
         let input_no_surrounding_chars = parse_input("123".to_string());
         let point_0_0 = Point { line: 0, col: 0 };
-        assert_eq!(is_part_number(&input_no_surrounding_chars, point_0_0, 3), false);
+        assert_eq!(
+            is_part_number(&input_no_surrounding_chars, point_0_0, 3),
+            false
+        );
 
         let input_no_special_chars = parse_input(".....\n.123.\n.....".to_string());
         let point_1_1 = Point { line: 1, col: 1 };
