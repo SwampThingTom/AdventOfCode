@@ -9,6 +9,42 @@ use std::panic;
 type InputType = Vec<String>;
 type SolutionType = i32;
 
+#[derive(Debug)]
+struct NumberBuilder {
+    buffer: String,
+    start: usize,
+}
+
+impl NumberBuilder {
+    fn new() -> NumberBuilder {
+        NumberBuilder { buffer: String::new(), start: 0 }
+    }
+
+    fn push(&mut self, c: char, index: usize) {
+        if self.buffer.is_empty() {
+            self.start = index;
+        }
+        self.buffer.push(c);
+    }
+
+    fn clear(&mut self) {
+        self.buffer.clear();
+        self.start = 0;
+    }
+
+    fn get_value(&self) -> i32 {
+        self.buffer.parse::<i32>().unwrap()
+    }
+
+    fn has_value(&self) -> bool {
+        !self.buffer.is_empty()
+    }
+
+    fn len(&self) -> usize {
+        self.buffer.len()
+    }
+}
+
 fn parse_input(input_str: String) -> InputType {
     input_str.lines().map(str::to_string).collect()
 }
@@ -50,30 +86,24 @@ fn is_part_number(input: &InputType, line_num: usize, char_num: usize, length: u
 
 fn find_part_numbers(input: &InputType) -> Vec<SolutionType> {
     let mut part_numbers: Vec<i32> = Vec::new();
+    let mut number_builder = NumberBuilder::new();
     for (line_num, line) in input.iter().enumerate() {
-        let mut number_str: String = String::new();
-        let mut number_start: usize = 0;
         for (c_idx, c) in line.chars().enumerate() {
             if c.is_digit(10) {
-                if number_str.is_empty() {
-                    number_start = c_idx;
+                number_builder.push(c, c_idx);
+            } else if number_builder.has_value() {
+                if is_part_number(input, line_num, number_builder.start, number_builder.len()) {
+                    part_numbers.push(number_builder.get_value());
                 }
-                number_str.push(c);
-            } else if !number_str.is_empty() {
-                if is_part_number(input, line_num, number_start, number_str.len()) {
-                    let number = number_str.parse::<i32>().unwrap();
-                    part_numbers.push(number);
-                }
-                number_str.clear();
+                number_builder.clear();
             }
         }
-        if !number_str.is_empty() {
-            if is_part_number(input, line_num, number_start, number_str.len()) {
-                let number = number_str.parse::<i32>().unwrap();
-                part_numbers.push(number);
+        if number_builder.has_value() {
+            if is_part_number(input, line_num, number_builder.start, number_builder.len()) {
+                part_numbers.push(number_builder.get_value());
             }
-            number_str.clear();
-        }        
+            number_builder.clear();
+        }       
     }
     part_numbers
 }
