@@ -18,6 +18,12 @@ struct PartNumber {
 }
 
 #[derive(Debug, PartialEq)]
+struct PartsAndGears {
+    parts: Vec<PartNumber>,
+    gears: Vec<(usize, usize)>,
+}
+
+#[derive(Debug, PartialEq)]
 struct NumberBuilder {
     buffer: String,
     start: usize,
@@ -92,23 +98,29 @@ fn is_part_number(input: &InputType, line_num: usize, char_num: usize, length: u
     false
 }
 
-fn find_part_numbers(input: &InputType) -> Vec<PartNumber> {
+fn find_part_numbers(input: &InputType) -> PartsAndGears {
     let mut part_numbers: Vec<PartNumber> = Vec::new();
+    let mut gears: Vec<(usize, usize)> = Vec::new();
     let mut number_builder = NumberBuilder::new();
     for (line_num, line) in input.iter().enumerate() {
         for (c_idx, c) in line.chars().enumerate() {
             if c.is_digit(10) {
                 number_builder.push(c, c_idx);
-            } else if number_builder.has_value() {
-                if is_part_number(input, line_num, number_builder.start, number_builder.len()) {
-                    part_numbers.push(PartNumber {
-                        value: number_builder.get_value(),
-                        line_num: line_num,
-                        char_num: number_builder.start,
-                        length: number_builder.len(),
-                    });
+            } else {
+                if c == '*' {
+                    gears.push((line_num, c_idx));
                 }
-                number_builder.clear();
+                if number_builder.has_value() {
+                    if is_part_number(input, line_num, number_builder.start, number_builder.len()) {
+                        part_numbers.push(PartNumber {
+                            value: number_builder.get_value(),
+                            line_num: line_num,
+                            char_num: number_builder.start,
+                            length: number_builder.len(),
+                        });
+                    }
+                    number_builder.clear();
+                }
             }
         }
         if number_builder.has_value() {
@@ -123,11 +135,11 @@ fn find_part_numbers(input: &InputType) -> Vec<PartNumber> {
             number_builder.clear();
         }       
     }
-    part_numbers
+    PartsAndGears { parts: part_numbers, gears: gears }
 }
 
 fn solve_part1(input: &InputType) -> SolutionType {
-    find_part_numbers(&input).iter().map(|part_number| part_number.value).sum()
+    find_part_numbers(&input).parts.iter().map(|part_number| part_number.value).sum()
 }
 }
 
@@ -164,7 +176,7 @@ mod tests {
     #[test]
     fn test_find_part_numbers() {
         let input = parse_input(SAMPLE_INPUT.to_string());
-        let part_numbers = find_part_numbers(&input);
+        let part_numbers = find_part_numbers(&input).parts;
         assert_eq!(part_numbers.len(), 8);
         assert_eq!(part_numbers[0].value, 467);
         assert_eq!(part_numbers[1].value, 35);
