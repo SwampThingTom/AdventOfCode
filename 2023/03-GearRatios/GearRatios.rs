@@ -1,6 +1,7 @@
 // GearRatios
 // https://adventofcode.com/2023/day/3
 
+use std::cmp::max;
 use std::cmp::min;
 use std::fs::read_to_string;
 
@@ -75,11 +76,7 @@ fn is_symbol(c: char) -> bool {
 
 // Return true if a character surrounding the box defined by line_num, char_num, and length is not a digit or a period.
 fn is_part_number(input: &InputType, location: Point, length: usize) -> bool {
-    let start = if location.col == 0 {
-        0
-    } else {
-        location.col - 1
-    };
+    let start = max(0, location.col as i32 - 1) as usize;
     let end = min(location.col + length + 1, input[0].len());
 
     // Check the line above the box.
