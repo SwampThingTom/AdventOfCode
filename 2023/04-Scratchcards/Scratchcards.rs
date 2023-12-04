@@ -43,7 +43,7 @@ fn parse_line(line: &str) -> Scratchcard {
 
 fn parse_nums(nums_str: &str) -> HashSet<u32> {
     nums_str
-        .split(" ")
+        .split(' ')
         .filter_map(|s| s.parse::<u32>().ok())
         .collect()
 }
@@ -53,16 +53,13 @@ fn parse_input(input_str: String) -> InputType {
 }
 
 fn solve_part1(input: &InputType) -> SolutionType {
-    input
-        .iter()
-        .map(|card| card.score())
-        .sum()
+    input.iter().map(|card| card.score()).sum()
 }
 
 fn solve_part2(input: &InputType) -> SolutionType {
     let mut card_counts = vec![1; input.len()];
     for (i, card) in input.iter().enumerate() {
-        for j in i+1..i+1+card.matches() as usize {
+        for j in i + 1..i + 1 + card.matches() as usize {
             card_counts[j] += card_counts[i];
         }
     }
