@@ -3,7 +3,6 @@
 
 use std::collections::HashSet;
 use std::fs::read_to_string;
-use std::panic;
 
 type InputType = Vec<Scratchcard>;
 type SolutionType = u32;
@@ -22,8 +21,12 @@ impl Scratchcard {
         }
     }
 
+    fn matches(&self) -> u32 {
+        self.winning_nums.intersection(&self.my_nums).count() as u32
+    }
+
     fn score(&self) -> u32 {
-        let matches = self.winning_nums.intersection(&self.my_nums).count() as u32;
+        let matches = self.matches();
         if matches == 0 {
             0
         } else {
@@ -57,7 +60,13 @@ fn solve_part1(input: &InputType) -> SolutionType {
 }
 
 fn solve_part2(input: &InputType) -> SolutionType {
-    todo!()
+    let mut card_counts = vec![1; input.len()];
+    for (i, card) in input.iter().enumerate() {
+        for j in i+1..i+1+card.matches() as usize {
+            card_counts[j] += card_counts[i];
+        }
+    }
+    card_counts.iter().sum()
 }
 
 fn main() {
@@ -69,9 +78,9 @@ fn main() {
     let part1 = solve_part1(&input);
     println!("Part 1: {} ({:?})", part1, part1_start.elapsed());
 
-    // let part2_start = std::time::Instant::now();
-    // let part2 = solve_part2(&input);
-    // println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
+    let part2_start = std::time::Instant::now();
+    let part2 = solve_part2(&input);
+    println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
 }
 
 #[cfg(test)]
@@ -97,6 +106,13 @@ mod tests {
     fn test_part1() {
         let input = parse_input(SAMPLE_INPUT.to_string());
         let result = solve_part1(&input);
-        assert_eq!(result, 13)
+        assert_eq!(result, 13);
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = parse_input(SAMPLE_INPUT.to_string());
+        let result = solve_part2(&input);
+        assert_eq!(result, 30);
     }
 }
