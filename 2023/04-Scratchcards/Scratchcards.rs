@@ -43,8 +43,8 @@ fn parse_line(line: &str) -> Scratchcard {
 
 fn parse_nums(nums_str: &str) -> HashSet<u32> {
     nums_str
-        .split(' ')
-        .filter_map(|s| s.parse::<u32>().ok())
+        .split_whitespace()
+        .map(|s| s.parse::<u32>().unwrap())
         .collect()
 }
 
