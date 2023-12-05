@@ -188,12 +188,10 @@ mod tests {
         assert_eq!(seed_location.get_location(1), 8);
 
         seed_location = SeedLocation::new();
-        seed_location.seed_to_soil.insert(50, 98, 2);
-        seed_location.seed_to_soil.insert(52, 50, 48);
-        seed_location.water_to_light.insert(88, 18, 7);
-        seed_location.water_to_light.insert(18, 25, 70);
-        seed_location.light_to_temperature.insert(68, 64, 13);
-        seed_location.humidity_to_location.insert(60, 56, 37);
+        seed_location.seed_to_soil.insert(52, 50, 48);          // seed 79 -> soil 81
+        seed_location.water_to_light.insert(18, 25, 70);        // water 81 -> light 74
+        seed_location.light_to_temperature.insert(68, 64, 13);  // light 74 -> temperature 78
+        seed_location.humidity_to_location.insert(60, 56, 37);  // humidity 78 -> location 82
         assert_eq!(seed_location.get_location(79), 82);
     }
 
