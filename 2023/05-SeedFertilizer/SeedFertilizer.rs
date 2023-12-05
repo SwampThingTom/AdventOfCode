@@ -2,13 +2,13 @@
 // https://adventofcode.com/2023/day/5
 
 use std::fs::read_to_string;
+use std::ops::Range;
 
 type InputType = SeedLocation;
 type SolutionType = i64;
 
 struct CategoryEntry {
-    start: SolutionType,
-    count: SolutionType,
+    range: Range<SolutionType>,
     offset: SolutionType,
 }
 
@@ -25,7 +25,7 @@ impl CategoryMap {
 
     fn get(&self, key: &SolutionType) -> SolutionType {
         for entry in &self.entries {
-            if *key >= entry.start && *key < entry.start + entry.count {
+            if entry.range.contains(key) {
                 return *key + entry.offset;
             }
         }
@@ -34,8 +34,7 @@ impl CategoryMap {
 
     fn insert(&mut self, value_start: SolutionType, key_start: SolutionType, count: SolutionType) {
         self.entries.push(CategoryEntry {
-            start: key_start,
-            count,
+            range: (key_start..key_start + count),
             offset: value_start - key_start,
         });
     }
