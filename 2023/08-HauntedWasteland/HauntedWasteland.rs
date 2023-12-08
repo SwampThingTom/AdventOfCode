@@ -36,24 +36,6 @@ fn parse_input(input_str: String) -> InputType {
     }
 }
 
-fn solve_part1(input: &InputType) -> SolutionType {
-    let target = "ZZZ".to_string();
-    let mut current = "AAA".to_string();
-    let mut next_instruction: usize = 0;
-    let mut count = 0;
-    while current != target {
-        let (left, right) = input.network.get(&current).unwrap();
-        current = if input.instructions[next_instruction] == 'L' {
-            left.clone()
-        } else {
-            right.clone()
-        };
-        next_instruction = (next_instruction + 1) % input.instructions.len();
-        count += 1;
-    }
-    count
-}
-
 fn get_start_nodes(input: &InputType) -> Vec<String> {
     input
         .network
@@ -63,11 +45,15 @@ fn get_start_nodes(input: &InputType) -> Vec<String> {
         .collect::<Vec<_>>()
 }
 
-fn is_end_node(node: &str) -> bool {
+fn is_end_node_1(node: &str) -> bool {
+    node == "ZZZ"
+}
+
+fn is_end_node_2(node: &str) -> bool {
     node.ends_with('Z')
 }
 
-fn count_path(input: &InputType, start: &str) -> SolutionType {
+fn count_path(input: &InputType, start: &str, is_end_node: fn(&str) -> bool) -> SolutionType {
     let mut count = 0;
     let mut next_instruction: usize = 0;
     let mut current = start.to_string();
@@ -104,10 +90,14 @@ fn gcd_recurse(min: SolutionType, max: SolutionType) -> SolutionType {
     }
 }
 
+fn solve_part1(input: &InputType) -> SolutionType {
+    count_path(input, "AAA", is_end_node_1)
+}
+
 fn solve_part2(input: &InputType) -> SolutionType {
     let path_lengths = get_start_nodes(input)
         .iter()
-        .map(|p| count_path(input, p))
+        .map(|p| count_path(input, p, is_end_node_2))
         .collect::<Vec<_>>();
     path_lengths.iter().fold(1, |acc, x| lcm(acc, *x))
 }
@@ -166,9 +156,9 @@ mod tests {
     }
 
     #[test]
-    fn test_is_end_node() {
-        assert!(is_end_node("XYZ"));
-        assert!(!is_end_node("ZZA"));
+    fn test_is_end_node_2() {
+        assert!(is_end_node_2("XYZ"));
+        assert!(!is_end_node_2("ZZA"));
     }
 
     #[test]
