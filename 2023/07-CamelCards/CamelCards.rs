@@ -53,6 +53,48 @@ fn hand_type(hand: &str) -> u32 {
     0 // high card
 }
 
+fn count_cards(hand: &str) -> (HashMap<char, u32>, u32) {
+    let mut card_counts = HashMap::new();
+    let mut wild_count = 0;
+    for c in hand.chars() {
+        if c == 'J' {
+            wild_count += 1;
+            continue;
+        }
+        let count = card_counts.entry(c).or_insert(0);
+        *count += 1;
+    }
+    (card_counts, wild_count)
+}
+
+fn sort_counts(card_counts: &HashMap<char, u32>) -> Vec<(char, u32)> {
+    let mut counts = card_counts
+        .iter()
+        .map(|(&c, &count)| (c, count))
+        .collect::<Vec<_>>();
+    counts.sort_by(|a, b| {
+        if a.1 == b.1 {
+            card_value(b.0).cmp(&card_value(a.0))
+        } else {
+            b.0.cmp(&a.0)
+        }
+    });
+    counts
+}
+
+fn replace_wilds(hand: &str) -> String {
+    let (card_counts, wild_count) = count_cards(hand);
+    if wild_count == 0 {
+        return hand.to_string();
+    }
+    if wild_count == 5 {
+        return "AAAAA".to_string();
+    }
+    let counts = sort_counts(&card_counts);
+    println!("{} -> {:?} ({})", hand, counts, wild_count);
+    str::replace(hand, "J", &counts[0].0.to_string())
+}
+
 fn card_value(card: char) -> u32 {
     match card {
         'A' => 14,
@@ -91,7 +133,23 @@ fn solve_part1(input: &InputType) -> SolutionType {
 }
 
 fn solve_part2(input: &InputType) -> SolutionType {
-    todo!()
+    // TODO: I believe the problem is that I've sorted the hands by rank, but for
+    // cases where the hand type is the same, I need to break the tie by using the
+    // actual hand.
+    // ALSO: "J cards are now the weakest card in the deck, with a value of 1."
+    let best_hands = input
+        .iter()
+        .map(|hand| CamelCard {
+            hand: replace_wilds(&hand.hand),
+            bid: hand.bid,
+        })
+        .collect::<Vec<CamelCard>>();
+    sort_hands(&best_hands)
+        .iter()
+        .enumerate()
+        .fold(0, |winnings, (i, hand)| {
+            winnings + hand.bid * (i as SolutionType + 1)
+        })
 }
 
 fn main() {
@@ -103,9 +161,9 @@ fn main() {
     let part1 = solve_part1(&input);
     println!("Part 1: {} ({:?})", part1, part1_start.elapsed());
 
-    // let part2_start = std::time::Instant::now();
-    // let part2 = solve_part2(&input);
-    // println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
+    let part2_start = std::time::Instant::now();
+    let part2 = solve_part2(&input);
+    println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
 }
 
 #[cfg(test)]
@@ -180,9 +238,48 @@ mod tests {
     }
 
     #[test]
+    fn test_replace_wilds() {
+        let mut hand = "99999";
+        assert_eq!(replace_wilds(hand), "99999");
+        hand = "99J99";
+        assert_eq!(replace_wilds(hand), "99999");
+        hand = "J3332";
+        assert_eq!(replace_wilds(hand), "33332");
+        hand = "TTT9J";
+        assert_eq!(replace_wilds(hand), "TTT9T");
+        hand = "AJA2A";
+        assert_eq!(replace_wilds(hand), "AAA2A");
+        hand = "2AJA2";
+        assert_eq!(replace_wilds(hand), "2AAA2");
+        hand = "A23J4";
+        assert_eq!(replace_wilds(hand), "A23A4");
+        hand = "4J7QK";
+        assert_eq!(replace_wilds(hand), "4K7QK");
+        hand = "J55J5";
+        assert_eq!(replace_wilds(hand), "55555");
+        hand = "6J76J";
+        assert_eq!(replace_wilds(hand), "67767");
+        hand = "J2TJA";
+        assert_eq!(replace_wilds(hand), "A2TAA");
+        hand = "J3J3J";
+        assert_eq!(replace_wilds(hand), "33333");
+        hand = "2AJJJ";
+        assert_eq!(replace_wilds(hand), "2AAAA");
+        hand = "JJ2JJ";
+        assert_eq!(replace_wilds(hand), "22222");
+    }
+
+    #[test]
     fn test_part1() {
         let input = parse_input(SAMPLE_INPUT.to_string());
         let result = solve_part1(&input);
         assert_eq!(result, 6440)
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = parse_input(SAMPLE_INPUT.to_string());
+        let result = solve_part2(&input);
+        assert_eq!(result, 5905)
     }
 }
