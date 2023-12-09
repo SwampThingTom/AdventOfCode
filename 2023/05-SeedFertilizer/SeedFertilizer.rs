@@ -10,13 +10,13 @@ use std::panic;
 type InputType = SeedLocation;
 type SolutionType = i64;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct CategoryEntry {
     range: Range<SolutionType>,
     offset: SolutionType,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct CategoryMap {
     entries: Vec<CategoryEntry>,
 }
@@ -37,15 +37,17 @@ impl CategoryMap {
         *key
     }
 
-    fn get_intersection(&self, range: &Range<SolutionType>) -> (Range<SolutionType>, SolutionType) {
-        println!("get_intersection({:?})", range);
+    // Returns an intersection in the the current range mapped back to the source range.
+    fn get_intersection(
+        &self,
+        range: &Range<SolutionType>,
+        source_offset: SolutionType,
+    ) -> (Range<SolutionType>, SolutionType) {
         for entry in &self.entries {
-            println!("  trying {:?}", entry.range);
             let start = max(entry.range.start, range.start);
             let end = min(entry.range.end, range.end);
             if start < end {
-                println!("  found start: {:?} end: {:?}", start, end);
-                return (start..end, entry.offset);
+                return (start - source_offset..end - source_offset, entry.offset);
             }
         }
         panic!("No intersection found");
@@ -58,16 +60,14 @@ impl CategoryMap {
         });
     }
 
-    fn insert_range(& mut self, range: Range<SolutionType>, offset: SolutionType) {
-        self.entries.push(CategoryEntry {
-            range,
-            offset,
-        });
+    fn insert_range(&mut self, range: Range<SolutionType>, offset: SolutionType) {
+        self.entries.push(CategoryEntry { range, offset });
     }
 
     // Fill in any gaps in the map with identity mappings.
     fn normalize(&mut self) {
-        self.entries.sort_by(|a, b| a.range.start.cmp(&b.range.start));
+        self.entries
+            .sort_by(|a, b| a.range.start.cmp(&b.range.start));
         let mut next_start = 0;
         let mut new_entries = Vec::new();
         for entry in self.entries.iter() {
@@ -86,7 +86,8 @@ impl CategoryMap {
             });
         }
         self.entries.extend(new_entries);
-        self.entries.sort_by(|a, b| a.range.start.cmp(&b.range.start));
+        self.entries
+            .sort_by(|a, b| a.range.start.cmp(&b.range.start));
     }
 }
 
@@ -116,11 +117,6 @@ impl SeedLocation {
         }
     }
 
-    fn get_fertilizer(&self, seed: SolutionType) -> SolutionType {
-        let soil = self.seed_to_soil.get(&seed);
-        self.soil_to_fertilizer.get(&soil)
-    }
-
     fn get_location(&self, seed: SolutionType) -> SolutionType {
         let soil = self.seed_to_soil.get(&seed);
         let fertilizer = self.soil_to_fertilizer.get(&soil);
@@ -129,11 +125,6 @@ impl SeedLocation {
         let temperature = self.light_to_temperature.get(&light);
         let humidity = self.temperature_to_humidity.get(&temperature);
         self.humidity_to_location.get(&humidity)
-    }
-
-    fn collapse(&self) -> CategoryMap {
-        let mut map = CategoryMap::new();
-        map
     }
 }
 
@@ -206,17 +197,15 @@ fn solve_part1(input: &InputType) -> SolutionType {
 }
 
 // Create a new map that maps from the source map to the target map.
-// This should make part 2 much more efficient.
 fn collapse_maps(source: CategoryMap, target: CategoryMap) -> CategoryMap {
     let mut map = CategoryMap::new();
     for source_entry in source.entries {
-        println!("source_entry: {:?}", source_entry);
         let mut next_range = source_entry.range;
         loop {
-            let target_range = next_range.start + source_entry.offset..next_range.end + source_entry.offset;
-            let (intersection, target_offset) = target.get_intersection(&target_range);
-            // TODO: I think we need to transform intersection back to the source range.
-            println!("  add map for {:?} {:?}", intersection, source_entry.offset + target_offset);
+            let target_range =
+                next_range.start + source_entry.offset..next_range.end + source_entry.offset;
+            let (intersection, target_offset) =
+                target.get_intersection(&target_range, source_entry.offset);
             map.insert_range(intersection.clone(), source_entry.offset + target_offset);
             if intersection.end == next_range.end {
                 break;
@@ -227,8 +216,39 @@ fn collapse_maps(source: CategoryMap, target: CategoryMap) -> CategoryMap {
     map
 }
 
+fn get_seed_ranges(seeds: &[SolutionType]) -> Vec<Range<SolutionType>> {
+    let mut ranges = Vec::new();
+    let mut next_seed = seeds.iter();
+    while let Some(seed) = next_seed.next() {
+        let count = next_seed.next();
+        let range = *seed..*seed + *count.unwrap();
+        ranges.push(range);
+    }
+    ranges
+}
+
 fn solve_part2(input: &InputType) -> SolutionType {
-    todo!()
+    println!(" ... this will take a while ...");
+    let mut seed_location =
+        collapse_maps(input.seed_to_soil.clone(), input.soil_to_fertilizer.clone());
+    seed_location = collapse_maps(seed_location, input.fertilzer_to_water.clone());
+    seed_location = collapse_maps(seed_location, input.water_to_light.clone());
+    seed_location = collapse_maps(seed_location, input.light_to_temperature.clone());
+    seed_location = collapse_maps(seed_location, input.temperature_to_humidity.clone());
+    seed_location = collapse_maps(seed_location, input.humidity_to_location.clone());
+
+    let mut locations = Vec::new();
+    let seed_ranges = get_seed_ranges(&input.seeds);
+    let range_count = seed_ranges.len();
+    let mut i = 1;
+    for range in seed_ranges {
+        println!("trying range {}/{}: {:?}", i, range_count, range);
+        for seed in range {
+            locations.push(seed_location.get(&seed));
+        }
+        i += 1;
+    }
+    *locations.iter().min().unwrap()
 }
 
 fn main() {
@@ -240,9 +260,9 @@ fn main() {
     let part1 = solve_part1(&input);
     println!("Part 1: {} ({:?})", part1, part1_start.elapsed());
 
-    // let part2_start = std::time::Instant::now();
-    // let part2 = solve_part2(&input);
-    // println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
+    let part2_start = std::time::Instant::now();
+    let part2 = solve_part2(&input);
+    println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
 }
 
 #[cfg(test)]
@@ -272,10 +292,10 @@ mod tests {
         assert_eq!(seed_location.get_location(1), 8);
 
         seed_location = SeedLocation::new();
-        seed_location.seed_to_soil.insert(52, 50, 48);          // seed 79 -> soil 81
-        seed_location.water_to_light.insert(18, 25, 70);        // water 81 -> light 74
-        seed_location.light_to_temperature.insert(68, 64, 13);  // light 74 -> temperature 78
-        seed_location.humidity_to_location.insert(60, 56, 37);  // humidity 78 -> location 82
+        seed_location.seed_to_soil.insert(52, 50, 48); // seed 79 -> soil 81
+        seed_location.water_to_light.insert(18, 25, 70); // water 81 -> light 74
+        seed_location.light_to_temperature.insert(68, 64, 13); // light 74 -> temperature 78
+        seed_location.humidity_to_location.insert(60, 56, 37); // humidity 78 -> location 82
         assert_eq!(seed_location.get_location(79), 82);
     }
 
@@ -296,63 +316,44 @@ mod tests {
         assert_eq!(map.entries[3].offset, 0);
     }
 
-    // TODO: Not really needed. Quick test of mapping from one map to another.
-    // #[test]
-    // fn test_get_fertilizer() {
-    //     let mut seed_location = SeedLocation::new();
-    //     seed_location.seed_to_soil.insert(50, 98, 2);
-    //     seed_location.seed_to_soil.insert(52, 50, 48);
-    //     seed_location.seed_to_soil.normalize();
-    //     seed_location.soil_to_fertilizer.insert(0, 15, 37);
-    //     seed_location.soil_to_fertilizer.insert(37, 52, 2);
-    //     seed_location.soil_to_fertilizer.insert(39, 0, 15);
-    //     seed_location.soil_to_fertilizer.normalize();
-    //     print_debug(&seed_location);
-    //     assert_eq!(seed_location.get_fertilizer(0), 39);
-    //     assert_eq!(seed_location.get_fertilizer(14), 53);
-    //     assert_eq!(seed_location.get_fertilizer(15), 0);
-    //     assert_eq!(seed_location.get_fertilizer(49), 34);
-    //     assert_eq!(seed_location.get_fertilizer(50), 37);
-    //     assert_eq!(seed_location.get_fertilizer(51), 38);
-    //     assert_eq!(seed_location.get_fertilizer(52), 54);
-    //     assert_eq!(seed_location.get_fertilizer(97), 99);
-    //     assert_eq!(seed_location.get_fertilizer(98), 35);
-    //     assert_eq!(seed_location.get_fertilizer(99), 36);
-    //     assert_eq!(seed_location.get_fertilizer(100), 100);
-    // }
+    #[test]
+    fn test_collapse_maps() {
+        let mut source = CategoryMap::new();
+        source.insert(50, 98, 2);
+        source.insert(52, 50, 48);
+        source.normalize();
 
-    // TODO: Not yet working. Needed for part 2.
-    // #[test]
-    // fn test_collapse_maps() {
-    //     let mut source = CategoryMap::new();
-    //     source.insert(50, 98, 2);
-    //     source.insert(52, 50, 48);
-    //     source.normalize();
+        let mut target = CategoryMap::new();
+        target.insert(0, 15, 37);
+        target.insert(37, 52, 2);
+        target.insert(39, 0, 15);
+        target.normalize();
 
-    //     let mut target = CategoryMap::new();
-    //     target.insert(0, 15, 37);
-    //     target.insert(37, 52, 2);
-    //     target.insert(39, 0, 15);
-    //     target.normalize();
-
-    //     let result = collapse_maps(source, target);
-    //     assert_eq!(result.get(&0), 39);
-    //     assert_eq!(result.get(&14), 53);
-    //     assert_eq!(result.get(&15), 0);
-    //     assert_eq!(result.get(&49), 34);
-    //     assert_eq!(result.get(&50), 37);
-    //     assert_eq!(result.get(&51), 38);
-    //     assert_eq!(result.get(&52), 54);
-    //     assert_eq!(result.get(&97), 99);
-    //     assert_eq!(result.get(&98), 35);
-    //     assert_eq!(result.get(&99), 36);
-    //     assert_eq!(result.get(&100), 100);
-    // }
+        let result = collapse_maps(source, target);
+        assert_eq!(result.get(&0), 39);
+        assert_eq!(result.get(&14), 53);
+        assert_eq!(result.get(&15), 0);
+        assert_eq!(result.get(&49), 34);
+        assert_eq!(result.get(&50), 37);
+        assert_eq!(result.get(&51), 38);
+        assert_eq!(result.get(&52), 54);
+        assert_eq!(result.get(&97), 99);
+        assert_eq!(result.get(&98), 35);
+        assert_eq!(result.get(&99), 36);
+        assert_eq!(result.get(&100), 100);
+    }
 
     #[test]
     fn test_part1() {
         let input = parse_input(SAMPLE_INPUT.to_string());
         let result = solve_part1(&input);
         assert_eq!(result, 35)
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = parse_input(SAMPLE_INPUT.to_string());
+        let result = solve_part2(&input);
+        assert_eq!(result, 46)
     }
 }
