@@ -4,6 +4,7 @@
 use std::cmp::max;
 use std::cmp::min;
 use std::fs::read_to_string;
+use std::io::{self, Write};
 use std::ops::Range;
 use std::panic;
 
@@ -228,7 +229,7 @@ fn get_seed_ranges(seeds: &[SolutionType]) -> Vec<Range<SolutionType>> {
 }
 
 fn solve_part2(input: &InputType) -> SolutionType {
-    println!(" ... this will take a while ...");
+    println!("  ... this will take a while ...");
     let mut seed_location =
         collapse_maps(input.seed_to_soil.clone(), input.soil_to_fertilizer.clone());
     seed_location = collapse_maps(seed_location, input.fertilzer_to_water.clone());
@@ -237,18 +238,24 @@ fn solve_part2(input: &InputType) -> SolutionType {
     seed_location = collapse_maps(seed_location, input.temperature_to_humidity.clone());
     seed_location = collapse_maps(seed_location, input.humidity_to_location.clone());
 
-    let mut locations = Vec::new();
+    let mut min_location = SolutionType::MAX;
     let seed_ranges = get_seed_ranges(&input.seeds);
     let range_count = seed_ranges.len();
     let mut i = 1;
     for range in seed_ranges {
-        println!("trying range {}/{}: {:?}", i, range_count, range);
+        print!("  checking range {}/{}: {:?}", i, range_count, range);
+        io::stdout().flush().unwrap();
+        let range_time = std::time::Instant::now();
         for seed in range {
-            locations.push(seed_location.get(&seed));
+            let location = seed_location.get(&seed);
+            if location < min_location {
+                min_location = location;
+            }
         }
+        println!(" ... took {:?}", range_time.elapsed());
         i += 1;
     }
-    *locations.iter().min().unwrap()
+    min_location
 }
 
 fn main() {
