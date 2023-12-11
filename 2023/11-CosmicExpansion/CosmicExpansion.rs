@@ -4,7 +4,7 @@
 use std::fs::read_to_string;
 
 type InputType = Vec<Vec<char>>;
-type SolutionType = i32;
+type SolutionType = i64;
 type GalaxyLocation = (SolutionType, SolutionType);
 
 fn parse_input(input_str: String) -> InputType {
@@ -14,20 +14,7 @@ fn parse_input(input_str: String) -> InputType {
         .collect()
 }
 
-fn expand_row(input: &[char], col_counts: &[u32]) -> Vec<char> {
-    let mut result = Vec::new();
-    for (col, &c) in input.iter().enumerate() {
-        result.push(c);
-        if col_counts[col] == 0 {
-            result.push(c);
-        }
-    }
-    result
-}
-
-fn expand(input: &InputType) -> InputType {
-    // for each row and column in input that is all ".", add another blank row or column to the output
-    let mut result = Vec::new();
+fn get_expansion_rows_and_columns(input: &InputType) -> (Vec<usize>, Vec<usize>) {
     let mut row_counts = vec![0; input.len()];
     let mut col_counts = vec![0; input[0].len()];
     for row in 0..input.len() {
@@ -38,22 +25,41 @@ fn expand(input: &InputType) -> InputType {
             }
         }
     }
-    for (row, line) in input.iter().enumerate() {
-        let expanded_row = expand_row(line, &col_counts);
-        result.push(expanded_row.clone());
-        if row_counts[row] == 0 {
-            result.push(expanded_row.clone());
+    let mut expansion_rows = Vec::new();
+    let mut expansion_cols = Vec::new();
+    for (row, &count) in row_counts.iter().enumerate() {
+        if count == 0 {
+            expansion_rows.push(row);
         }
     }
-    result
+    for (col, &count) in col_counts.iter().enumerate() {
+        if count == 0 {
+            expansion_cols.push(col);
+        }
+    }
+    (expansion_rows, expansion_cols)
 }
 
-fn get_galaxies(input: &InputType) -> Vec<GalaxyLocation> {
+fn get_galaxies(input: &InputType, expand_by: SolutionType) -> Vec<GalaxyLocation> {
     let mut result = Vec::new();
-    for row in 0..input.len() {
-        for col in 0..input[row].len() {
-            if input[row][col] == '#' {
-                result.push((row as SolutionType, col as SolutionType));
+    let (expansion_rows, expansion_cols) = get_expansion_rows_and_columns(input);
+    let mut row_offset = 0;
+    for (row, line) in input.iter().enumerate() {
+        let mut col_offset = 0;
+        if expansion_rows.contains(&row) {
+            row_offset += expand_by;
+            continue;
+        }
+        for (col, &cell) in line.iter().enumerate() {
+            if expansion_cols.contains(&col) {
+                col_offset += expand_by;
+                continue;
+            }
+            if cell == '#' {
+                result.push((
+                    row as SolutionType + row_offset,
+                    col as SolutionType + col_offset,
+                ));
             }
         }
     }
@@ -74,17 +80,20 @@ fn distance(galaxy1: GalaxyLocation, galaxy2: GalaxyLocation) -> SolutionType {
     (galaxy1.0 - galaxy2.0).abs() + (galaxy1.1 - galaxy2.1).abs()
 }
 
-fn solve_part1(input: &InputType) -> SolutionType {
-    let universe = expand(input);
-    let galaxies = get_galaxies(&universe);
+fn solve(input: &InputType, expand_by: SolutionType) -> SolutionType {
+    let galaxies = get_galaxies(input, expand_by);
     get_pairs(&galaxies)
         .iter()
         .map(|pair| distance(pair.0, pair.1))
         .sum()
 }
 
+fn solve_part1(input: &InputType) -> SolutionType {
+    solve(input, 1)
+}
+
 fn solve_part2(input: &InputType) -> SolutionType {
-    todo!()
+    solve(input, 999_999)
 }
 
 fn main() {
@@ -96,9 +105,9 @@ fn main() {
     let part1 = solve_part1(&input);
     println!("Part 1: {} ({:?})", part1, part1_start.elapsed());
 
-    // let part2_start = std::time::Instant::now();
-    // let part2 = solve_part2(&input);
-    // println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
+    let part2_start = std::time::Instant::now();
+    let part2 = solve_part2(&input);
+    println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
 }
 
 #[cfg(test)]
@@ -115,24 +124,16 @@ mod tests {
     }
 
     #[test]
-    fn test_expand() {
-        let input = parse_input(SAMPLE_INPUT.to_string());
-        let result = expand(&input);
-        assert_eq!(result.len(), 12);
-        assert_eq!(result[0].len(), 13);
-    }
-
-    #[test]
     fn test_get_galaxies() {
         let input = parse_input(SAMPLE_INPUT.to_string());
-        let result = get_galaxies(&input);
+        let result = get_galaxies(&input, 1);
         assert_eq!(result.len(), 9);
     }
 
     #[test]
     fn test_get_pairs() {
         let input = parse_input(SAMPLE_INPUT.to_string());
-        let galaxies = get_galaxies(&input);
+        let galaxies = get_galaxies(&input, 1);
         let result = get_pairs(&galaxies);
         assert_eq!(result.len(), 36);
     }
@@ -142,5 +143,12 @@ mod tests {
         let input = parse_input(SAMPLE_INPUT.to_string());
         let result = solve_part1(&input);
         assert_eq!(result, 374)
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = parse_input(SAMPLE_INPUT.to_string());
+        let result = solve(&input, 99);
+        assert_eq!(result, 8410)
     }
 }
