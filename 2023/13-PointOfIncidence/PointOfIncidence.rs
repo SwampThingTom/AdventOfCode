@@ -112,9 +112,125 @@ fn solve_part1(input: &InputType) -> SolutionType {
     input.iter().map(|pattern| summarize_pattern(pattern)).sum()
 }
 
-// fn solve_part2(input: &InputType) -> SolutionType {
-//     todo!()
-// }
+fn find_num_column_differences(pattern: &PatternType, col1: usize, col2: usize, max: usize) -> usize {
+    let mut num_differences = 0;
+    for row in pattern {
+        if row[col1] != row[col2] {
+            num_differences += 1;
+            if num_differences > max {
+                return num_differences;
+            }
+        }
+    }
+    return num_differences
+}
+
+fn find_equal_columns_2(pattern: &PatternType) -> Vec<usize> {
+    let mut almost_equal_columns = Vec::new();
+    for col_num in 0..pattern[0].len() - 1 {
+        if find_num_column_differences(&pattern, col_num, col_num + 1, 1) <= 1 {
+            almost_equal_columns.push(col_num);
+        }
+    }
+    almost_equal_columns
+}
+
+fn find_num_row_differences(pattern: &PatternType, row1: usize, row2: usize, max: usize) -> usize {
+    let mut num_differences = 0;
+    for col_num in 0..pattern[0].len() {
+        if pattern[row1][col_num] != pattern[row2][col_num] {
+            num_differences += 1;
+            if num_differences > max {
+                return num_differences;
+            }
+        }
+    }
+    return num_differences
+}
+
+fn find_equal_rows_2(pattern: &PatternType) -> Vec<usize> {
+    let mut almost_equal_rows = Vec::new();
+    for row_num in 0..pattern.len() - 1 {
+        for col_num in 0..pattern[0].len() {
+            if find_num_row_differences(&pattern, row_num, row_num + 1, 1) <= 1 {
+                almost_equal_rows.push(row_num);
+            }
+        }
+    }
+    almost_equal_rows
+}
+
+fn is_reflection_vertical_2(pattern: &PatternType, col: usize) -> bool {
+    if col == 0 || col >= pattern[0].len() - 2 {
+        return true;
+    }
+    let mut left_col = col - 1;
+    let mut right_col = col + 2;
+    loop {
+        if find_num_column_differences(&pattern, left_col, right_col, 1) != 1 {
+            return false;
+        }
+        if left_col == 0 || right_col >= pattern[0].len() - 2 {
+            return true;
+        }
+        left_col -= 1;
+        right_col += 1;
+    }
+}
+
+fn is_reflection_horizontal_2(pattern: &PatternType, row: usize) -> bool {
+    if row == 0 || row >= pattern.len() - 2 {
+        return true;
+    }
+    let mut top_row = row - 1;
+    let mut bottom_row = row + 2;
+    loop {
+        for col_num in 0..pattern[0].len() {
+            if find_num_row_differences(&pattern, top_row, bottom_row, 1) != 1 {
+                return false;
+            }
+        }
+        if top_row == 0 || bottom_row >= pattern.len() - 2 {
+            return true;
+        }
+        top_row -= 1;
+        bottom_row += 1;
+    }
+}
+
+fn find_vertical_reflection_2(pattern: &PatternType) -> Option<usize> {
+    let equal_columns = find_equal_columns_2(pattern);
+    for col in equal_columns {
+        if is_reflection_vertical_2(pattern, col) {
+            return Some(col);
+        }
+    }
+    None
+}
+
+fn find_horizontal_reflection_2(pattern: &PatternType) -> Option<usize> {
+    let equal_rows = find_equal_rows_2(pattern);
+    for row in equal_rows {
+        if is_reflection_horizontal_2(pattern, row) {
+            return Some(row);
+        }
+    }
+    None
+}
+
+fn summarize_pattern_2(pattern: &PatternType) -> SolutionType {
+    if let Some(col) = find_vertical_reflection_2(pattern) {
+        return (col + 1) as SolutionType;
+    }
+    if let Some(row) = find_horizontal_reflection_2(pattern) {
+        return (row + 1) as SolutionType * 100;
+    }
+    panic!("No reflection found");
+}
+
+fn solve_part2(input: &InputType) -> SolutionType {
+    input.iter().map(|pattern| summarize_pattern_2(pattern)).sum()
+}
 
 fn main() {
     let parse_start = std::time::Instant::now();
@@ -125,9 +241,9 @@ fn main() {
     let part1 = solve_part1(&input);
     println!("Part 1: {} ({:?})", part1, part1_start.elapsed());
 
-    // let part2_start = std::time::Instant::now();
-    // let part2 = solve_part2(&input);
-    // println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
+    let part2_start = std::time::Instant::now();
+    let part2 = solve_part2(&input);
+    println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
 }
 
 #[cfg(test)]
@@ -201,10 +317,10 @@ mod tests {
         assert_eq!(result, 405)
     }
 
-    // #[test]
-    // fn test_part2() {
-    //     let input = parse_input(SAMPLE_INPUT.to_string());
-    //     let result = solve_part2(&input);
-    //     assert_eq!(result, 400)
-    // }
+    #[test]
+    fn test_part2() {
+        let input = parse_input(SAMPLE_INPUT.to_string());
+        let result = solve_part2(&input);
+        assert_eq!(result, 400)
+    }
 }
