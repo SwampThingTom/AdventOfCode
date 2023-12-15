@@ -53,6 +53,99 @@ fn move_rocks_north(input: &InputType) -> InputType {
     result
 }
 
+fn move_rocks_south(input: &InputType) -> InputType {
+    let mut result = input.clone();
+    for col in 0..input[0].len() {
+        let mut free_row: Option<usize> = None;
+        for row in (0..input.len()).rev() {
+            match input[row][col] {
+                '.' => {
+                    if free_row.is_none() {
+                        free_row = Some(row);
+                    }
+                }
+                '#' => {
+                    free_row = None;
+                }
+                'O' => {
+                    if let Some(new_row) = free_row {
+                        result[new_row][col] = 'O';
+                        result[row][col] = '.';
+                        free_row = Some(new_row - 1);
+                    }
+                }
+                _ => panic!("Invalid input"),
+            }
+        }
+    }
+    result
+}
+
+fn move_rocks_west(input: &InputType) -> InputType {
+    let mut result = input.clone();
+    for row in 0..input.len() {
+        let mut free_col: Option<usize> = None;
+        for col in 0..input[0].len() {
+            match input[row][col] {
+                '.' => {
+                    if free_col.is_none() {
+                        free_col = Some(col);
+                    }
+                }
+                '#' => {
+                    free_col = None;
+                }
+                'O' => {
+                    if let Some(new_col) = free_col {
+                        result[row][new_col] = 'O';
+                        result[row][col] = '.';
+                        free_col = Some(new_col + 1);
+                    }
+                }
+                _ => panic!("Invalid input"),
+            }
+        }
+    }
+    result
+}
+
+fn move_rocks_east(input: &InputType) -> InputType {
+    let mut result = input.clone();
+    for row in 0..input.len() {
+        let mut free_col: Option<usize> = None;
+        for col in (0..input.len()).rev() {
+            match input[row][col] {
+                '.' => {
+                    if free_col.is_none() {
+                        free_col = Some(col);
+                    }
+                }
+                '#' => {
+                    free_col = None;
+                }
+                'O' => {
+                    if let Some(new_col) = free_col {
+                        result[row][new_col] = 'O';
+                        result[row][col] = '.';
+                        free_col = Some(new_col - 1);
+                    }
+                }
+                _ => panic!("Invalid input"),
+            }
+        }
+    }
+    result
+}
+
+fn run_cycle(input: &InputType) -> InputType {
+    let mut result = input.clone();
+    result = move_rocks_north(&result);
+    result = move_rocks_west(&result);
+    result = move_rocks_south(&result);
+    result = move_rocks_east(&result);
+    result
+}
+
 fn calculate_load(input: &InputType) -> SolutionType {
     let mut result = 0;
     for (row_num, row) in input.iter().enumerate() {
@@ -70,7 +163,13 @@ fn solve_part1(input: &InputType) -> SolutionType {
 }
 
 fn solve_part2(input: &InputType) -> SolutionType {
-    todo!();
+    // TODO: Not performant.
+    let mut result = input.clone();
+    for i in 0..1_000_000_000 {
+        println!("Running cycle {}", i);
+        let result = run_cycle(&result);
+    }
+    calculate_load(&result)
 }
 
 fn main() {
@@ -82,9 +181,9 @@ fn main() {
     let part1 = solve_part1(&input);
     println!("Part 1: {} ({:?})", part1, part1_start.elapsed());
 
-    // let part2_start = std::time::Instant::now();
-    // let part2 = solve_part2(&input);
-    // println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
+    let part2_start = std::time::Instant::now();
+    let part2 = solve_part2(&input);
+    println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
 }
 
 #[cfg(test)]
@@ -123,10 +222,10 @@ mod tests {
         assert_eq!(result, 136);
     }
 
-    // #[test]
-    // fn test_part2() {
-    //     let input = parse_input(SAMPLE_INPUT.to_string());
-    //     let result = solve_part2(&input);
-    //     assert_eq!(result, 64);
-    // }
+    #[test]
+    fn test_part2() {
+        let input = parse_input(SAMPLE_INPUT.to_string());
+        let result = solve_part2(&input);
+        assert_eq!(result, 64);
+    }
 }
