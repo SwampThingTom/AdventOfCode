@@ -165,15 +165,44 @@ fn move_beam(grid: &Grid, beam: &Beam, energy_map: &mut EnergyMap) {
     }
 }
 
-fn solve_part1(input: &InputType) -> SolutionType {
+fn get_energy(grid: &Grid, beam: &Beam) -> SolutionType {
     let mut energy_map = HashMap::new();
-    let beam = Beam::new((0, 0), Direction::Right);
-    move_beam(input, &beam, &mut energy_map);
+    move_beam(grid, beam, &mut energy_map);
     energy_map.len() as SolutionType
 }
 
+fn solve_part1(input: &InputType) -> SolutionType {
+    get_energy(input, &Beam::new((0, 0), Direction::Right))
+}
+
+fn make_point(row: usize, col: usize) -> Point {
+    (row as i32, col as i32)
+}
+
+fn all_start_beams(grid: &InputType) -> Vec<Beam> {
+    let mut beams = Vec::new();
+    let row_length = grid.len();
+    let column_length = grid[0].len();
+    for row in 0..row_length {
+        beams.push(Beam::new(make_point(row, 0), Direction::Right));
+        beams.push(Beam::new(
+            make_point(row, column_length - 1),
+            Direction::Left,
+        ));
+    }
+    for col in 0..column_length {
+        beams.push(Beam::new(make_point(0, col), Direction::Down));
+        beams.push(Beam::new(make_point(row_length - 1, col), Direction::Up));
+    }
+    beams
+}
+
 fn solve_part2(input: &InputType) -> SolutionType {
-    todo!()
+    all_start_beams(input)
+        .iter()
+        .map(|beam| get_energy(input, beam))
+        .max()
+        .unwrap()
 }
 
 fn main() {
@@ -185,9 +214,9 @@ fn main() {
     let part1 = solve_part1(&input);
     println!("Part 1: {} ({:?})", part1, part1_start.elapsed());
 
-    // let part2_start = std::time::Instant::now();
-    // let part2 = solve_part2(&input);
-    // println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
+    let part2_start = std::time::Instant::now();
+    let part2 = solve_part2(&input);
+    println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
 }
 
 #[cfg(test)]
@@ -257,5 +286,12 @@ mod tests {
         let input = parse_input(SAMPLE_INPUT.to_string());
         let result = solve_part1(&input);
         assert_eq!(result, 46)
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = parse_input(SAMPLE_INPUT.to_string());
+        let result = solve_part2(&input);
+        assert_eq!(result, 51)
     }
 }
