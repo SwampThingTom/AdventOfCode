@@ -10,6 +10,7 @@ type InputType = Map;
 type SolutionType = u32;
 type Point = (i32, i32);
 type GridLocation = (usize, usize);
+type NextFunction = fn(&Crucible, Direction) -> Option<Crucible>;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 enum Direction {
@@ -46,30 +47,12 @@ impl Crucible {
         }
     }
 
-    fn neighbors(&self) -> Vec<Crucible> {
+    fn neighbors(&self, next: NextFunction) -> Vec<Crucible> {
         self.direction
             .available_directions()
             .iter()
-            .filter_map(|direction| self.next(*direction))
+            .filter_map(|direction| next(self, *direction))
             .collect()
-    }
-
-    fn next(&self, direction: Direction) -> Option<Crucible> {
-        if self.direction != direction {
-            Some(Crucible {
-                location: self.location_in_direction(direction),
-                direction,
-                direction_count: 1,
-            })
-        } else if self.direction_count < 3 {
-            Some(Crucible {
-                location: self.location_in_direction(direction),
-                direction,
-                direction_count: self.direction_count + 1,
-            })
-        } else {
-            None
-        }
     }
 
     fn location_in_direction(&self, direction: Direction) -> Point {
@@ -135,7 +118,7 @@ impl Map {
         }
     }
 
-    fn find_minimum_heat_loss(&self) -> SolutionType {
+    fn find_minimum_heat_loss(&self, next: NextFunction) -> SolutionType {
         let mut minimum_heat_loss = SolutionType::MAX;
         let mut visited: HashSet<Crucible> = HashSet::new();
 
@@ -152,7 +135,7 @@ impl Map {
 
         while !open_list.is_empty() {
             let node = open_list.pop().unwrap();
-            for crucible in node.crucible.neighbors() {
+            for crucible in node.crucible.neighbors(next) {
                 let Some(cell) = self.grid_location(crucible.location) else {
                     continue;
                 };
@@ -160,7 +143,7 @@ impl Map {
                     continue;
                 }
                 let heat_loss = node.heat_loss + self.heat_loss(cell);
-                if heat_loss > minimum_heat_loss {
+                if heat_loss >= minimum_heat_loss {
                     continue;
                 }
                 if cell == self.end {
@@ -206,12 +189,52 @@ fn parse_input(input_str: String) -> InputType {
     )
 }
 
+fn next(crucible: &Crucible, direction: Direction) -> Option<Crucible> {
+    if crucible.direction != direction {
+        Some(Crucible {
+            location: crucible.location_in_direction(direction),
+            direction,
+            direction_count: 1,
+        })
+    } else if crucible.direction_count < 3 {
+        Some(Crucible {
+            location: crucible.location_in_direction(direction),
+            direction,
+            direction_count: crucible.direction_count + 1,
+        })
+    } else {
+        None
+    }
+}
+
 fn solve_part1(input: &InputType) -> SolutionType {
-    input.find_minimum_heat_loss()
+    input.find_minimum_heat_loss(next)
+}
+
+fn next_ultra(crucible: &Crucible, direction: Direction) -> Option<Crucible> {
+    if crucible.direction != direction {
+        if crucible.direction_count >= 4 {
+            Some(Crucible {
+                location: crucible.location_in_direction(direction),
+                direction,
+                direction_count: 1,
+            })
+        } else {
+            None
+        }
+    } else if crucible.direction_count < 10 {
+        Some(Crucible {
+            location: crucible.location_in_direction(direction),
+            direction,
+            direction_count: crucible.direction_count + 1,
+        })
+    } else {
+        None
+    }
 }
 
 fn solve_part2(input: &InputType) -> SolutionType {
-    todo!()
+    input.find_minimum_heat_loss(next_ultra)
 }
 
 fn main() {
@@ -223,9 +246,9 @@ fn main() {
     let part1 = solve_part1(&input);
     println!("Part 1: {} ({:?})", part1, part1_start.elapsed());
 
-    // let part2_start = std::time::Instant::now();
-    // let part2 = solve_part2(&input);
-    // println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
+    let part2_start = std::time::Instant::now();
+    let part2 = solve_part2(&input);
+    println!("Part 2: {} ({:?})", part2, part2_start.elapsed());
 }
 
 #[cfg(test)]
@@ -250,5 +273,12 @@ mod tests {
         let input = parse_input(SAMPLE_INPUT.to_string());
         let result = solve_part1(&input);
         assert_eq!(result, 102)
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = parse_input(SAMPLE_INPUT.to_string());
+        let result = solve_part2(&input);
+        assert_eq!(result, 94)
     }
 }
