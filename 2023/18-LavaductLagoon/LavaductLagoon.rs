@@ -7,7 +7,7 @@ use std::ops::Range;
 use std::panic;
 
 type InputType = Vec<Line>;
-type SolutionType = i32;
+type SolutionType = i64;
 type Point = (i32, i32);
 
 #[derive(Debug)]
@@ -148,8 +148,28 @@ fn solve_part1(input: &InputType) -> SolutionType {
     lagoon.map.len() as SolutionType
 }
 
+fn decode_hex(hex: &str) -> (char, i32) {
+    let dir_char = hex.chars().nth(6).unwrap();
+    let direction = match dir_char {
+        '0' => 'R',
+        '1' => 'D',
+        '2' => 'L',
+        '3' => 'U',
+        _ => panic!("Unknown direction: {}", dir_char),
+    };
+    let distance = i32::from_str_radix(&hex[1..6], 16).unwrap();
+    (direction, distance)
+}
+
 fn solve_part2(input: &InputType) -> SolutionType {
-    todo!()
+    // TODO: Not performant. Runs for hours without finding solution.
+    let mut lagoon = Lagoon::new();
+    for line in input {
+        let (direction, distance) = decode_hex(&line.color);
+        lagoon.dig(direction, distance);
+    }
+    lagoon.fill();
+    lagoon.map.len() as SolutionType
 }
 
 fn main() {
@@ -298,9 +318,24 @@ mod tests {
     }
 
     #[test]
+    fn test_decode() {
+        assert_eq!(decode_hex("#000000"), ('R', 0));
+        assert_eq!(decode_hex("#fffff1"), ('D', 1048575));
+        assert_eq!(decode_hex("#8ceee2"), ('L', 577262));
+        assert_eq!(decode_hex("#caa173"), ('U', 829975));
+    }
+
+    #[test]
     fn test_part1() {
         let input = parse_input(SAMPLE_INPUT.to_string());
         let result = solve_part1(&input);
-        assert_eq!(result, 62)
+        assert_eq!(result, 62);
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = parse_input(SAMPLE_INPUT.to_string());
+        let result = solve_part2(&input);
+        assert_eq!(result, 952408144115);
     }
 }
