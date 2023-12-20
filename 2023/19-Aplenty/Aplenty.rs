@@ -3,10 +3,13 @@
 
 use std::collections::HashMap;
 use std::fs::read_to_string;
+use std::ops::Range;
 use std::panic;
 
-type InputType = (HashMap<String, Vec<Rule>>, Vec<Part>);
+type InputType = (Workflows, Vec<Part>);
 type SolutionType = i32;
+type Workflows = HashMap<String, Vec<Rule>>;
+type CategoryRanges = HashMap<char, Range<i32>>;
 
 #[derive(Debug)]
 struct Part {
@@ -16,7 +19,7 @@ struct Part {
     s: i32,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 struct Conditional {
     category: char,
     operation: char,
@@ -42,7 +45,7 @@ impl Conditional {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Rule {
     conditional: Option<Conditional>,
     when_true: String,
@@ -76,11 +79,11 @@ fn parse_workflow(line: &str) -> (String, Vec<Rule>) {
     (key, rules)
 }
 
-fn parse_workflows(input: &[String]) -> HashMap<String, Vec<Rule>> {
+fn parse_workflows(input: &[String]) -> Workflows {
     input
         .iter()
         .map(|line| parse_workflow(line))
-        .collect::<HashMap<String, Vec<Rule>>>()
+        .collect::<Workflows>()
 }
 
 fn parse_category(category: &str) -> i32 {
@@ -129,7 +132,7 @@ fn test_conditional(part: &Part, conditional: &Conditional) -> bool {
     }
 }
 
-fn is_part_accepted(part: &Part, workflows: &HashMap<String, Vec<Rule>>) -> bool {
+fn is_part_accepted(part: &Part, workflows: &Workflows) -> bool {
     let mut rules = workflows.get("in").unwrap();
     loop {
         for rule in rules {
@@ -165,8 +168,66 @@ fn solve_part1(input: &InputType) -> SolutionType {
         .sum()
 }
 
-fn solve_part2(input: &InputType) -> SolutionType {
-    todo!()
+fn category_combinations(ranges: CategoryRanges) -> u64 {
+    ranges
+        .values()
+        .map(|r| r.len() as u64)
+        .product()
+}
+
+fn split_ranges(conditional: &Conditional, ranges: CategoryRanges) -> (CategoryRanges, CategoryRanges) {
+    let mut range1 = ranges.clone();
+    let mut range2 = ranges.clone();
+    if conditional.operation == '<' {
+        range1.insert(conditional.category, ranges[&conditional.category].start..conditional.value);
+        range2.insert(conditional.category, conditional.value..ranges[&conditional.category].end);
+        (range1, range2)
+    } else if conditional.operation == '>' {
+        range1.insert(conditional.category, conditional.value + 1..ranges[&conditional.category].end);
+        range2.insert(conditional.category, ranges[&conditional.category].start..conditional.value + 1);
+        (range1, range2)
+    } else {
+        panic!("Unknown operation");
+    }
+}
+
+fn find_distinct_combinations(workflows: &Workflows, rules: &[Rule], ranges: CategoryRanges) -> u64 {
+    let rule = &rules[0];
+    println!("Trying {:?}", rule);
+    let Some(ref conditional) = rule.conditional else {
+        println!("  Always {}", rule.when_true);
+        match rule.when_true.as_str() {
+            "A" => return category_combinations(ranges),
+            "R" => return 0,
+            _ => return find_distinct_combinations(workflows, workflows.get(&rule.when_true).unwrap(), ranges),
+        }
+    };
+    let (true_range, false_range) = split_ranges(conditional, ranges);
+    println!("  Is {} {} {}?", conditional.category, conditional.operation, conditional.value);
+    println!("  True range: {:?}", true_range);
+    println!("  False range: {:?}", false_range);
+    match rule.when_true.as_str() {
+        "A" => category_combinations(true_range),
+        "R" => 0,
+        _ => {
+            println!("  Finding combinations for true branch: {}", rule.when_true);
+            let combinations1 = find_distinct_combinations(workflows, workflows.get(&rule.when_true).unwrap(), true_range);
+            println!("  Finding combinations for false branch");
+            let combinations2 = find_distinct_combinations(workflows, &rules[1..], false_range);
+            println!("  Found {} combinations", combinations1 + combinations2);
+            combinations1 + combinations2
+        },
+    }
+}
+
+fn solve_part2(input: &InputType) -> u64 {
+    // TODO: This currently does not pass the sample input
+    let workflows = &input.0;
+    let rules = workflows.get("in").unwrap();
+    let ranges = vec![('x', 1..4001), ('m', 1..4001), ('a', 1..4001), ('s', 1..4001)]
+        .into_iter()
+        .collect::<CategoryRanges>();
+    find_distinct_combinations(workflows, rules, ranges)
 }
 
 fn main() {
@@ -266,5 +327,70 @@ mod tests {
         let input = parse_input(SAMPLE_INPUT.to_string());
         let result = solve_part1(&input);
         assert_eq!(result, 19114)
+    }
+
+    #[test]
+    fn test_split_ranges_less_than() {
+        let ranges = vec![('x', 1..4001), ('m', 1..4001), ('a', 1..4001), ('s', 1..4001)]
+            .into_iter()
+            .collect::<CategoryRanges>();
+        let conditional = Conditional {
+            category: 's',
+            operation: '<',
+            value: 1351,
+        };
+        let (range1, range2) = split_ranges(&conditional, ranges);
+        assert_eq!(range1[&'s'], 1..1351);
+        assert_eq!(range2[&'s'], 1351..4001);
+    }
+
+    #[test]
+    fn test_split_ranges_greater_than() {
+        let ranges = vec![('x', 1..4001), ('m', 1..4001), ('a', 1..4001), ('s', 1..4001)]
+            .into_iter()
+            .collect::<CategoryRanges>();
+        let conditional = Conditional {
+            category: 'm',
+            operation: '>',
+            value: 2655,
+        };
+        let (range1, range2) = split_ranges(&conditional, ranges);
+        assert_eq!(range1[&'m'], 2656..4001);
+        assert_eq!(range2[&'m'], 1..2656);
+    }
+
+    #[test]
+    fn test_category_combinations() {
+        let ranges_empty = vec![('x', 1..0), ('m', 1..0), ('a', 1..0), ('s', 1..0)]
+            .into_iter()
+            .collect::<CategoryRanges>();
+        assert_eq!(category_combinations(ranges_empty), 0);
+
+        let ranges_zero = vec![('x', 1..1), ('m', 1..1), ('a', 1..1), ('s', 1..1)]
+            .into_iter()
+            .collect::<CategoryRanges>();
+        assert_eq!(category_combinations(ranges_zero), 0);
+
+        let ranges_one = vec![('x', 1..2), ('m', 1..2), ('a', 1..2), ('s', 1..2)]
+            .into_iter()
+            .collect::<CategoryRanges>();
+        assert_eq!(category_combinations(ranges_one), 1);
+
+        let ranges_middle = vec![('x', 1..101), ('m', 1..101), ('a', 1..101), ('s', 1..101)]
+            .into_iter()
+            .collect::<CategoryRanges>();
+        assert_eq!(category_combinations(ranges_middle), 100_u64.pow(4));
+
+        let ranges_max = vec![('x', 1..4001), ('m', 1..4001), ('a', 1..4001), ('s', 1..4001)]
+            .into_iter()
+            .collect::<CategoryRanges>();
+        assert_eq!(category_combinations(ranges_max), 4000_u64.pow(4));
+    }
+
+    #[test]
+    fn test_part2() {
+        let input = parse_input(SAMPLE_INPUT.to_string());
+        let result = solve_part2(&input);
+        assert_eq!(result, 167_409_079_868_000)
     }
 }
