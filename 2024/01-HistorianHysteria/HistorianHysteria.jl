@@ -35,12 +35,12 @@ end
 
 function solve_part2(input::InputType)::SolutionType
     vec1, vec2 = input
-    counts2 = count_occurences(vec2)
+    counts2 = count_occurrences(vec2)
     pairs = [(x, get(counts2, x, 0)) for x in vec1]
     return sum(x * y for (x, y) in pairs)
 end
 
-function count_occurences(input::Vector{Int})::Dict{Int, Int}
+function count_occurrences(input::Vector{Int})::Dict{Int, Int}
     counts = Dict{Int, Int}()
     for value in input
         counts[value] = get(counts, value, 0) + 1
