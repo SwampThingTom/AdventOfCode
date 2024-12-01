@@ -1,4 +1,4 @@
-YEAR=2015
+YEAR=2024
 DAY=<day>
 APP=<name>.jl
 SESSION=~/.aoc-session

@@ -6,22 +6,22 @@
 const InputType = Vector{SubString{String}}
 const SolutionType = Int
 
-function read_input(filename::String)
+function read_input(filename::String)::String
     return open(filename, "r") do file
         read(file, String)
     end
 end
 
-function parse_input(input::String)
+function parse_input(input::String)::InputType
     return split(input, "\n")
 end
 
-function solve_part1(input::InputType)
+function solve_part1(input::InputType)::SolutionType
     # TODO: Implement part 1
     return 0
 end
 
-function solve_part2(input::InputType)
+function solve_part2(input::InputType)::SolutionType
     # TODO: Implement part 2
     return 0
 end
