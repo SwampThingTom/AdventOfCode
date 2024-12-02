@@ -30,8 +30,20 @@ function is_safe(input::Vector{Int})::Bool
 end
 
 function solve_part2(input::InputType)::SolutionType
-    # TODO: Implement part 2
-    return 0
+    return count(is_safe_with_tolerance, input)
+end
+
+function is_safe_with_tolerance(input::Vector{Int})::Bool
+    if is_safe(input)
+        return true
+    end
+    for i in eachindex(input)
+        new_input = vcat(input[1:i-1], input[i+1:end])
+        if is_safe(new_input)
+            return true
+        end
+    end
+    return false
 end
 
 function main(filename::String)
