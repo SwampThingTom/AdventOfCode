@@ -24,10 +24,10 @@ function search_xmas(input::InputType, row::Int, col::Int, dir::Tuple{Int, Int})
     end
 
     expected_chars = ['M', 'A', 'S']
-    for i in 1:3
+    for expected in expected_chars
         row += dir[1]
         col += dir[2]
-        if input[row][col] != expected_chars[i]
+        if input[row][col] != expected
             return 0
         end
     end
