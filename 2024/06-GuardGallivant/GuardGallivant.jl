@@ -69,13 +69,13 @@ function has_cycle(input::InputType, start::Tuple{Int, Int})::Bool
         end
         if input[nexty][nextx] == '#'
             direction = (direction % 4) + 1
+            if (x, y, direction) in path
+                return true
+            end
+            push!(path, (x, y, direction))
             continue
         end
         x, y = nextx, nexty
-        if (x, y, direction) in path
-            return true
-        end
-        push!(path, (x, y, direction))
     end
 
     return false
