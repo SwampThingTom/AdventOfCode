@@ -33,7 +33,7 @@ function solve_part1(input::InputType)::SolutionType
 end
 
 function concat(a::Int, b::Int)::Int
-    return parse(Int, string(a, b))
+    return a * 10 ^ (floor(log10(b)) + 1) + b
 end
 
 function is_valid_2(value::Int, ranges::Vector{Int}, acc::Int)::Bool
