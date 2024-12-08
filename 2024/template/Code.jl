@@ -8,7 +8,7 @@ const SolutionType = Int
 
 function read_input(filename::String)::String
     return open(filename, "r") do file
-        read(file, String)
+        chomp(read(file, String))
     end
 end
 
