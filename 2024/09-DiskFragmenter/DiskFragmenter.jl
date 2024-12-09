@@ -99,42 +99,46 @@ function solve_part1(input::InputType)::SolutionType
     return checksum(input)
 end
 
+function find_free_space_index(input::InputType, size::Int, max::Int)::Int
+    for index in 1:max
+        if input[index].file_id == -1 && input[index].size >= size
+            return index
+        end
+    end
+    return 0
+end
+
 function solve_part2(input::InputType)::SolutionType
     file_index = length(input)
-    while file_index > 1
-        if input[file_index].file_id < 0
+    file_id = input[file_index].file_id
+    @assert file_id >= 0
+
+    while file_id > 0
+        if input[file_index].file_id != file_id
             file_index -= 1
             continue
         end
 
-        free_index = findfirst(file -> file.file_id == -1 && file.size >= input[file_index].size, input)
-        if free_index === nothing || free_index >= file_index
+        free_index = find_free_space_index(input, input[file_index].size, file_index-1)
+        if free_index == 0
             file_index -= 1
+            file_id -= 1
             continue
         end
 
         if input[free_index].size == input[file_index].size
-            input[free_index] = DiskFile(input[file_index].file_id, input[file_index].size)
+            input[free_index] = DiskFile(file_id, input[file_index].size)
             input[file_index] = DiskFile(-1, input[file_index].size)
+            file_index -= 1
         else
-            moved_file = DiskFile(input[file_index].file_id, input[file_index].size)
+            moved_file = DiskFile(file_id, input[file_index].size)
             input[free_index] = DiskFile(-1, input[free_index].size - moved_file.size)
             input[file_index] = DiskFile(-1, moved_file.size)
             insert!(input, free_index, moved_file)
-            file_index += 1
+            # don't update file_index because we added a new file
         end
 
-        if input[file_index-1].file_id == -1
-            input[file_index] = DiskFile(-1, input[file_index-1].size + input[file_index].size)
-            input[file_index-1] = DiskFile(-1, 0)
-        end
-
-        if file_index < length(input) && input[file_index+1].file_id == -1
-            input[file_index] = DiskFile(-1, input[file_index].size + input[file_index+1].size)
-            input[file_index+1] = DiskFile(-1, 0)
-        end
-
-        file_index -= 1
+        file_id -= 1
     end
 
     return checksum(input)
