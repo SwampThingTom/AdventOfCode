@@ -9,8 +9,7 @@ const RobotType = Tuple{Tuple{Int, Int}, Tuple{Int, Int}}
 const InputType = Vector{RobotType}
 const SolutionType = Int
 
-# grid_size = (11, 7)
-grid_size = (101, 103)
+grid_size = length(ARGS) > 0 ? (101, 103) : (11, 7)
 
 function read_input(filename::String)::String
     return open(filename, "r") do file
@@ -44,13 +43,13 @@ function render(input::InputType)::String
     return join([join([grid_str(grid[i, j]) for j in axes(grid, 2)]) for i in axes(grid, 1)], "\n")
 end
 
-function step(robot::RobotType, size::Tuple{Int, Int}, seconds::Int)::RobotType
-    return ((mod(robot[1][1] + seconds * robot[2][1], size[1]), 
-             mod(robot[1][2] + seconds * robot[2][2], size[2])), robot[2])
+function step(robot::RobotType, seconds::Int)::RobotType
+    return ((mod(robot[1][1] + seconds * robot[2][1], grid_size[1]), 
+             mod(robot[1][2] + seconds * robot[2][2], grid_size[2])), robot[2])
 end
 
 function solve_part1(input::InputType)::SolutionType
-    result = [step(robot, grid_size, 100) for robot in input]
+    result = [step(robot, 100) for robot in input]
 
     max_x, max_y = grid_size
     quadrants = fill(0, 4)
@@ -75,7 +74,7 @@ function solve_part2(input::InputType)::SolutionType
     best_y, best_yvar = 0, Inf
 
     for seconds in 1:max(grid_size[1], grid_size[2])
-        result = [step(robot, grid_size, seconds) for robot in input]
+        result = [step(robot, seconds) for robot in input]
 
         x_positions = [robot[1][1] for robot in result]
         xvar = var(x_positions)
@@ -110,7 +109,7 @@ function main(filename::String)
     part2 = solve_part2(input)
     part2_ms = (time_ns() - part2_start) / 1.0e6
     println("Part 2: ", part2, " (", part2_ms, " ms)")
-    println(render([step(robot, grid_size, part2) for robot in input]))
+    println(render([step(robot, part2) for robot in input]))
 end
 
 filename = length(ARGS) > 0 ? ARGS[1] : "sample_input.txt"
