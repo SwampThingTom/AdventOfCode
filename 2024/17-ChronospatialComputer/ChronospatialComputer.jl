@@ -102,21 +102,46 @@ function run(cpu::Cpu)::Union{UInt8, Nothing}
     @assert false # we should never get here
 end
 
-function solve_part1(input::InputType)::SolutionType
+function run_program(cpu::Cpu)::Vector{UInt8}
     output = UInt8[]
-    while !is_halted(input)
-        value = run(input)
+    while !is_halted(cpu)
+        value = run(cpu)
         if !isnothing(value)
             push!(output, value)
         end
     end
-    
+    return output
+end
+
+function solve_part1(input::InputType)::SolutionType
+    output = run_program(input)    
     return join([string(c) for c in output], ",")
 end
 
-function solve_part2(input::InputType)::SolutionType
-    # TODO: Implement part 2
-    return "TBD"
+function solve_part2(input::InputType)::Int
+    to_visit = [0]
+    # match outputs in reverse order
+    for digit in reverse(1:length(input.program))
+        next_to_visit = Int[]
+        for value in to_visit
+            # because the result relies on mod 8, try the next 8 values
+            for offset in 0:7
+                a = value + offset
+                cpu = deepcopy(input)
+                cpu.a = a
+                output = run_program(cpu)
+                if output == input.program[digit:end]
+                    if digit == 1
+                        return a
+                    end
+                    # it's a match, so multiply by 8 to try the next digit
+                    push!(next_to_visit, a << 3)
+                end
+            end
+        end
+        to_visit = next_to_visit
+    end
+    return -1
 end
 
 function main(filename::String)
@@ -130,11 +155,13 @@ function main(filename::String)
     part1_ms = (time_ns() - part1_start) / 1.0e6
     println("Part 1: ", part1, " (", part1_ms, " ms)")
 
+    input2 = parse_input(read_input(filename2))
     part2_start = time_ns()
-    part2 = solve_part2(input)
+    part2 = solve_part2(input2)
     part2_ms = (time_ns() - part2_start) / 1.0e6
     println("Part 2: ", part2, " (", part2_ms, " ms)")
 end
 
 filename = length(ARGS) > 0 ? ARGS[1] : "sample_input.txt"
+filename2 = length(ARGS) > 0 ? ARGS[1] : "sample_input2.txt"
 main(filename)
