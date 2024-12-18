@@ -55,8 +55,7 @@ function combo(cpu::Cpu, operand::UInt8)::UInt
 end
 
 function divide(cpu::Cpu, operand::UInt)::UInt
-    denominator = 1 << operand
-    return cpu.a ÷ denominator
+    return cpu.a >> operand
 end
 
 function xor(cpu::Cpu, operand::UInt)::UInt
