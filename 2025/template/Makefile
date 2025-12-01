@@ -1,6 +1,6 @@
 YEAR=2024
 DAY=<day>
-APP=<name>.jl
+APP=<name>.swift
 SESSION=~/.aoc-session
 
 all: run

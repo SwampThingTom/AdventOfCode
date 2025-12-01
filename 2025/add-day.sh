@@ -13,7 +13,7 @@ target_dir="$day-$name"
 day_num=`expr $day + 0`
 mkdir $target_dir
 
-cp template/Code.jl $target_dir/$name.swift
+cp template/Code.swift $target_dir/$name.swift
 sed -i '' "s/<day>/$day_num/g" $target_dir/$name.swift
 sed -i '' "s/<name>/$name/g" $target_dir/$name.swift
 
