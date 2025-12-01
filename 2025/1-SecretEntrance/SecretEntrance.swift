@@ -1,9 +1,9 @@
 #!/usr/bin/env swift
 
-import Foundation
-
 // SecretEntrance
-// https://adventofcode.com/2024/day/1
+// https://adventofcode.com/2025/day/1
+
+import Foundation
 
 typealias InputType = [String]
 typealias SolutionType = Int

@@ -1,9 +1,9 @@
 #!/usr/bin/env swift
 
-import Foundation
-
 // <name>
-// https://adventofcode.com/2024/day/<day>
+// https://adventofcode.com/2025/day/<day>
+
+import Foundation
 
 typealias InputType = [String]
 typealias SolutionType = Int
