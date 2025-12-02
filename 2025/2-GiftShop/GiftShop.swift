@@ -16,22 +16,37 @@ func parse(input: String) -> InputType {
     input.components(separatedBy: ",").map { $0.split(separator: "-").map { Int($0)! } }.map { Range($0[0]...$0[1]) }
 }
 
-func isValid(id: Int) -> Bool {
-    let idString = String(id)
-    guard idString.count % 2 == 0 else { return true }
-    let half = idString.count / 2
-    return idString.prefix(half) != idString.suffix(half)
+func isValid(idString: String, parts: Int = 2) -> Bool {
+    guard idString.count % parts == 0 else { return true }
+
+    let partCount = idString.count / parts
+    guard parts > 2 else { 
+        return idString.prefix(partCount) != idString.suffix(partCount)
+    }
+
+    let partStrings = stride(from: 0, to: idString.count, by: partCount).map { i in
+        let startIdx = idString.index(idString.startIndex, offsetBy: i)
+        let endIdx = idString.index(startIdx, offsetBy: partCount)
+        return String(idString[startIdx..<endIdx])
+    }
+    return !partStrings.allSatisfy { $0 == partStrings.first }
+}
+
+func isValidExtended(idString: String) -> Bool {
+    guard idString.count > 1 else { return true }
+    return (2...idString.count).allSatisfy { isValid(idString: idString, parts: $0) }
 }
 
 func solvePart1(input: InputType) -> SolutionType {
     input.map {
-        $0.filter { !isValid(id: $0) }.reduce(0, +)
+        $0.filter { !isValid(idString: String($0)) }.reduce(0, +)
     }.reduce(0, +)
 }
 
 func solvePart2(input: InputType) -> SolutionType {
-    // TODO: Implement part 2
-    0
+    input.map {
+        $0.filter { !isValidExtended(idString: String($0)) }.reduce(0, +)
+    }.reduce(0, +)
 }
 
 func main(_ filename: String) {
