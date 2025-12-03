@@ -16,32 +16,35 @@ func parse(input: String) -> InputType {
     input.components(separatedBy: "\n").map { $0.compactMap { $0.wholeNumberValue } }
 }
 
-func joltage(_ input: [Int]) -> Int {
-    var msd = 0
-    var lsd = 0
-    for digit in input.dropLast() {
-        if digit > msd {
-            lsd = 0
-            msd = digit
-            continue
-        }
-        if digit > lsd {
-            lsd = digit
+func joltage(_ input: [Int], numDigits: Int) -> Int {
+    var digits = [Int](repeating: 0, count: numDigits)
+    let maxMsdIndex = input.count - numDigits
+    for (index, digit) in input.enumerated() {
+        let digitStartIndex = max(0, index - maxMsdIndex)
+        for i in digitStartIndex..<numDigits {
+            if digit > digits[i] {
+                for j in i+1..<numDigits {
+                    digits[j] = 0
+                }
+                digits[i] = digit
+                break
+            }
         }
     }
-    lsd = max(lsd, input.last!)
-    return msd * 10 + lsd
+    let joltage = digits.reduce(0, { $0 * 10 + $1 })
+    return joltage
 }
 
 func solvePart1(input: InputType) -> SolutionType {
     input.map {
-        joltage($0)
+        joltage($0, numDigits: 2)
     }.reduce(0, +)
 }
 
 func solvePart2(input: InputType) -> SolutionType {
-    // TODO: Implement part 2
-    0
+    input.map {
+        joltage($0, numDigits: 12)
+    }.reduce(0, +)
 }
 
 func main(_ filename: String) {
