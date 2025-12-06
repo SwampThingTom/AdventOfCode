@@ -14,15 +14,42 @@ typealias InputType = Problems
 typealias SolutionType = Int
 
 func readInput(filename: String) -> String {
-    try! String(contentsOfFile: filename, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+    try! String(contentsOfFile: filename, encoding: .utf8)
 }
 
-func parse(input: String) -> InputType {
-    let components = input.components(separatedBy: "\n")
-    let values = components.dropLast().map { line in
+func parsePart1(input: String) -> InputType {
+    let lines = input.components(separatedBy: "\n")
+    let values = lines.dropLast().map { line in
         line.split(whereSeparator: { $0.isWhitespace }).map { Int($0)! }
     }
-    let operators = components.last!.filter { !$0.isWhitespace }.map { String($0) }
+    let operators = lines.last!.filter { !$0.isWhitespace }.map { String($0) }
+    return Problems(values: values, operators: operators)
+}
+
+func parsePart2(input: String) -> InputType {
+    let lines = input.components(separatedBy: "\n").map { Array($0) }
+    let operators = lines.last!.filter { !$0.isWhitespace }.map { String($0) }
+
+    let transposedLines = lines[0].indices.map { col in
+        String(lines.dropLast().compactMap { $0[col] })
+    }
+
+    var values = [[Int]]()
+    var group = [Int]()
+    for str in transposedLines {
+        let valueString = str.trimmingCharacters(in: .whitespaces)
+        guard !valueString.isEmpty else {
+            values.append(group)
+            group = []
+            continue
+        }
+        let value = Int(valueString)! 
+        group.append(value)
+    }
+    if !group.isEmpty {
+        values.append(group)
+    }
+
     return Problems(values: values, operators: operators)
 }
 
@@ -45,8 +72,13 @@ func solvePart1(input: InputType) -> SolutionType {
 }
 
 func solvePart2(input: InputType) -> SolutionType {
-    // TODO: Implement part 2
-    0
+    var result = 0
+    for (index, values) in input.values.enumerated() {
+        let op = input.operators[index]
+        let value = op == "*" ? values.reduce(1, *) : values.reduce(0, +)
+        result += value
+    }
+    return result
 }
 
 func main(_ filename: String) {
@@ -54,15 +86,20 @@ func main(_ filename: String) {
     
     var input: InputType!
     let parseDuration = clock.measure {
-        input = parse(input: readInput(filename: filename))
+        input = parsePart1(input: readInput(filename: filename))
     }
-    print("Parse time: \(parseDuration / .milliseconds(1)) ms")
+    print("Parse Part 1 time: \(parseDuration / .milliseconds(1)) ms")
 
     var part1: SolutionType!
     let part1Duration = clock.measure {
         part1 = solvePart1(input: input)
     }
     print("Part 1: \(part1!) (\(part1Duration / .milliseconds(1)) ms)")
+
+    let parseDuration2 = clock.measure {
+        input = parsePart2(input: readInput(filename: filename))
+    }
+    print("Parse Part 2 time: \(parseDuration2 / .milliseconds(1)) ms")
 
     var part2: SolutionType!
     let part2Duration = clock.measure {
