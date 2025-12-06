@@ -5,12 +5,12 @@
 
 import Foundation
 
-struct Problems {
-    let values: [[Int]]
-    let operators: [String]
+struct Problem {
+    let values: [Int]
+    let op: String
 }
 
-typealias InputType = Problems
+typealias InputType = [Problem]
 typealias SolutionType = Int
 
 func readInput(filename: String) -> String {
@@ -19,66 +19,33 @@ func readInput(filename: String) -> String {
 
 func parsePart1(input: String) -> InputType {
     let lines = input.components(separatedBy: "\n")
-    let values = lines.dropLast().map { line in
-        line.split(whereSeparator: { $0.isWhitespace }).map { Int($0)! }
+    let valueRows = lines.dropLast().map { $0.split(whereSeparator: \.isWhitespace).map { Int($0)! } }
+    let operators = lines.last!.filter { !$0.isWhitespace }.map { String($0) }    
+    return operators.enumerated().map { (col, op) in
+        Problem(values: valueRows.map { $0[col] }, op: op)
     }
-    let operators = lines.last!.filter { !$0.isWhitespace }.map { String($0) }
-    return Problems(values: values, operators: operators)
 }
 
 func parsePart2(input: String) -> InputType {
     let lines = input.components(separatedBy: "\n").map { Array($0) }
     let operators = lines.last!.filter { !$0.isWhitespace }.map { String($0) }
-
+    
     let transposedLines = lines[0].indices.map { col in
-        String(lines.dropLast().compactMap { $0[col] })
+        String(lines.dropLast().map { $0[col] })
     }
-
-    var values = [[Int]]()
-    var group = [Int]()
-    for str in transposedLines {
-        let valueString = str.trimmingCharacters(in: .whitespaces)
-        guard !valueString.isEmpty else {
-            values.append(group)
-            group = []
-            continue
-        }
-        let value = Int(valueString)! 
-        group.append(value)
-    }
-    if !group.isEmpty {
-        values.append(group)
-    }
-
-    return Problems(values: values, operators: operators)
+    
+    let values = transposedLines
+        .split { $0.trimmingCharacters(in: .whitespaces).isEmpty }
+        .map { $0.map { Int($0.trimmingCharacters(in: .whitespaces))! } }
+    
+    return zip(operators, values).map { Problem(values: $1, op: $0) }
 }
 
-func print(problems: Problems) {
-    for value in problems.values {
-        print(value.map { String($0) }.joined(separator: " "))
+func solve(input: InputType) -> SolutionType {
+    return input.reduce(0) { result, problem in
+        let value = problem.op == "*" ? problem.values.reduce(1, *) : problem.values.reduce(0, +)
+        return result + value
     }
-    print(problems.operators.map { String($0) }.joined(separator: " "))
-}
-
-func solvePart1(input: InputType) -> SolutionType {
-    var result = 0
-    for column in 0..<input.values[0].count {
-        let op = input.operators[column]
-        let values = input.values.map { $0[column] }
-        let value = op == "*" ? values.reduce(1, *) : values.reduce(0, +)
-        result += value
-    }
-    return result
-}
-
-func solvePart2(input: InputType) -> SolutionType {
-    var result = 0
-    for (index, values) in input.values.enumerated() {
-        let op = input.operators[index]
-        let value = op == "*" ? values.reduce(1, *) : values.reduce(0, +)
-        result += value
-    }
-    return result
 }
 
 func main(_ filename: String) {
@@ -92,7 +59,7 @@ func main(_ filename: String) {
 
     var part1: SolutionType!
     let part1Duration = clock.measure {
-        part1 = solvePart1(input: input)
+        part1 = solve(input: input)
     }
     print("Part 1: \(part1!) (\(part1Duration / .milliseconds(1)) ms)")
 
@@ -103,7 +70,7 @@ func main(_ filename: String) {
 
     var part2: SolutionType!
     let part2Duration = clock.measure {
-        part2 = solvePart2(input: input)
+        part2 = solve(input: input)
     }
     print("Part 2: \(part2!) (\(part2Duration / .milliseconds(1)) ms)")
 }
