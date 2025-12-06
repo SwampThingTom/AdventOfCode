@@ -4,3 +4,4 @@ build
 *.o
 a.out
 input.txt
+.vscode
