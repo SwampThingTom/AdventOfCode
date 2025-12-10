@@ -56,9 +56,106 @@ func solvePart1(input: InputType) -> SolutionType {
     return maxArea
 }
 
+func pointOnSegment(point: Point, p1: Point, p2: Point) -> Bool {
+    let minX = min(p1.x, p2.x), maxX = max(p1.x, p2.x)
+    let minY = min(p1.y, p2.y), maxY = max(p1.y, p2.y)
+    return point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY
+}
+
+func polygonContainsPoint(polygon: InputType, point: Point) -> Bool {
+    for i in 0..<polygon.count {
+        let p1 = polygon[i]
+        let p2 = polygon[(i + 1) % polygon.count]
+        if pointOnSegment(point: point, p1: p1, p2: p2) {
+            return true
+        }
+    }
+    
+    var inside = false
+    for i in 0..<polygon.count {
+        let p1 = polygon[i]
+        let p2 = polygon[(i + 1) % polygon.count]        
+        guard p1.x == p2.x else { continue }
+        
+        let minY = min(p1.y, p2.y)
+        let maxY = max(p1.y, p2.y)
+        if point.y > minY && point.y <= maxY && point.x < p1.x {
+            inside = !inside
+        }
+    }
+    return inside
+}
+
+func segmentsCross(p1: Point, p2: Point, edge: (Point, Point)) -> Bool {
+    let (p3, p4) = edge
+    
+    let seg1Horizontal = p1.y == p2.y
+    let seg2Horizontal = p3.y == p4.y
+    if seg1Horizontal == seg2Horizontal {
+        return false
+    }
+    
+    let (hP1, hP2, vP1, vP2) = seg1Horizontal ? (p1, p2, p3, p4) : (p3, p4, p1, p2)
+    let hY = hP1.y
+    let hXMin = min(hP1.x, hP2.x), hXMax = max(hP1.x, hP2.x)
+    let vX = vP1.x
+    let vYMin = min(vP1.y, vP2.y), vYMax = max(vP1.y, vP2.y)    
+    return hXMin < vX && vX < hXMax && vYMin < hY && hY < vYMax
+}
+
+func polygonContainsRect(polygon: InputType, rect: (Point, Point)) -> Bool {
+    let (p1, p2) = rect
+    let rectXMin = min(p1.x, p2.x)
+    let rectXMax = max(p1.x, p2.x)
+    let rectYMin = min(p1.y, p2.y)
+    let rectYMax = max(p1.y, p2.y)
+
+    // Verify corners are inside the polygon
+    let corners = [
+        Point(x: rectXMin, y: rectYMin),
+        Point(x: rectXMin, y: rectYMax),
+        Point(x: rectXMax, y: rectYMin),
+        Point(x: rectXMax, y: rectYMax),
+    ]
+
+    for corner in corners {
+        if !polygonContainsPoint(polygon: polygon, point: corner) {
+            return false
+        }
+    }
+
+    // Verify there are no edge intersections
+    let edges = [
+        (Point(x: rectXMin, y: rectYMin), Point(x: rectXMax, y: rectYMin)),
+        (Point(x: rectXMax, y: rectYMin), Point(x: rectXMax, y: rectYMax)),
+        (Point(x: rectXMax, y: rectYMax), Point(x: rectXMin, y: rectYMax)),
+        (Point(x: rectXMin, y: rectYMax), Point(x: rectXMin, y: rectYMin)),
+    ]
+
+    for i in 0..<polygon.count {
+        let p1 = polygon[i]
+        let p2 = polygon[(i + 1) % polygon.count]
+        for edge in edges {
+            if segmentsCross(p1: p1, p2: p2, edge: edge) {
+                return false
+            }
+        }
+    }
+
+    return true
+}
+
 func solvePart2(input: InputType) -> SolutionType {
-    // TODO: Implement part 2
-    0
+    var maxArea = 0
+    for p1Index in 0..<input.count {
+        let p1 = input[p1Index]
+        for p2 in input[p1Index+1..<input.count] {
+            if polygonContainsRect(polygon: input, rect: (p1, p2)) {
+                maxArea = max(maxArea, Point.rectArea(p1: p1, p2: p2))
+            }
+        }
+    }
+    return maxArea
 }
 
 func main(_ filename: String) {
